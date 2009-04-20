@@ -1,0 +1,11 @@
+Source: amigu
+Section: utilities
+Priority: extra
+Maintainer: cassfa <info@cassfa.com>
+Build-Depends: debhelper (>= 5)
+Standards-Version: 3.7.2
+
+Package: amigu
+Architecture: i386
+Depends: python (>=2.4.2-0ubuntu2), python-gtk2 (>=2.8.1-0ubuntu2), gconf2 (>=2.12.0-0ubuntu1), gksu
+Description: Asistente de migracion de Guadalinex de archivos y configuraciones de sistemas Windows NT 

@@ -1,0 +1,1063 @@
+# -*- coding: utf-8 -*-
+
+import os, re, random, time
+import commands
+import glob
+from amigu import _
+import binascii
+from xml.dom import minidom
+from amigu.util.folder import *
+from amigu.apps.base import application
+
+
+__DIR_PST2MBX__="/usr/bin"
+__DIR_DBX2MBX__="/usr/bin"
+
+
+class mailconfig:
+    """Clase para las configuraciones de correo.
+    Visit http://msdn2.microsoft.com/en-us/library/ms715237.aspx for more information about the values"""
+
+    def __init__(self, config):
+        """Constructor de la clase.
+        Recibe la configuración obtenida del registro"""
+        if isinstance(config, dict):
+            self.c = config
+        elif os.path.exists(config):
+            self.c = self.readconfig_wm(config)
+        else:
+            raise Exception
+        #print self.c
+
+    def get_type(self):
+        """Devuelve el tipo de cuenta de correo"""
+        if 'IMAP Server' in self.c.keys():
+            t = "imap"
+        elif 'POP3 Server' in self.c.keys():
+            t = "pop3"
+        elif 'HTTPMail Server' in self.c.keys():
+            t = "HTTPMail"
+        else:
+            t = "Unknown"
+        return t
+
+    def get_user_name(self):
+        """Devuelve el nombre del usuario"""
+        if self.get_type() == "imap":
+            if 'IMAP User Name' in self.c.keys():
+                r = self.c['IMAP User Name']
+            elif 'IMAP User' in self.c.keys():
+                r = self.c['IMAP User']
+        elif self.get_type() == "pop3":
+            if 'POP3 User Name' in self.c.keys():
+                r = self.c['POP3 User Name']
+            elif 'POP3 User' in self.c.keys():
+                r = self.c['POP3 User']
+        elif self.get_type() == "HTTPmail":
+            r = self.c['HTTPMail User Name']
+        else:
+            r = None
+        return r
+
+    def get_account_name(self):
+        """Devuelve el nombre de la cuenta de correo"""
+        return self.c['Account Name']
+
+    def get_connection_type(self):
+        """Devuelve el tipo de conexión con el servidor"""
+        return self.c['Connection Type']
+
+    def get_server(self):
+        """Devuelve el servidor de correo entrante"""
+        if self.get_type() == "imap":
+            r = self.c['IMAP Server']
+        elif self.get_type() == "pop3":
+            r = self.c['POP3 Server']
+        elif self.get_type() == "HTTPMail":
+            r = self.c['HTTPMail Server']
+        else:
+            r = None
+        return r
+
+    def use_SSL(self):
+        """Devuelve si la conexión es segura"""
+        if self.get_type() == "imap" and 'IMAP Secure Connection' in self.c.keys():
+            r = hex2dec(self.c['IMAP Secure Connection'])
+        elif self.get_type() == "imap" and 'IMAP Use SSL' in self.c.keys():
+            r = hex2dec(self.c['IMAP Use SSL'])
+        elif self.get_type() == "pop3" and 'POP3 Secure Connection' in self.c.keys():
+            r = hex2dec(self.c['POP3 Secure Connection'])
+        elif self.get_type() == "pop3" and 'POP3 Use SSL' in self.c.keys():
+            r = hex2dec(self.c['POP3 Use SSL'])
+        else:
+            r = None
+        return r
+
+    def get_port(self):
+        """Devuelve el puerto del servidor de correo entrante"""
+        if self.get_type() == "imap":
+            if 'IMAP Port' in self.c.keys():
+                r = hex2dec(self.c['IMAP Port'])
+            elif self.use_SSL():
+                r = 993
+            else:
+                r = 143
+        elif self.get_type() == "pop3":
+            if 'POP3 Port' in self.c.keys():
+                r = hex2dec(self.c['POP3 Port'])
+            elif self.use_SSL():
+                r = 995
+            else:
+                r = 110
+        else:
+            r = None
+        return r
+
+    def get_timeout(self):
+        """Devuelve el tiempo de espera"""
+        try:
+            if self.get_type() == "imap":
+                r = self.c['IMAP Timeout']
+            elif self.get_type() == "pop3":
+                r = self.c['POP3 Timeout']
+        except:
+            r = 60
+        return r
+
+    def remove_expired(self):
+        """Devuelve si se eliminan los correos con el paso del tiempo"""
+        if 'Remove When Expired' in self.c.keys():
+            return hex2dec(self.c['Remove When Expired']) and 'true' or 'false'
+
+    def remove_deleted(self):
+        """Devuelve si se eliminan los correos del servidor al ser borrados"""
+        if 'Remove When Deleted' in self.c.keys():
+            return hex2dec(self.c['Remove When Deleted']) and 'true' or 'false'
+
+    def get_SMTP_display_name(self):
+        """Devuelve el nombre del servidor de correo saliente"""
+        if 'SMTP Display Name' in self.c.keys():
+            return self.c['SMTP Display Name']
+        elif 'Display Name' in self.c.keys():
+            return self.c['Display Name']
+        else:
+            return ""
+
+    def get_SMTP_port(self):
+        """Devuelve el puerto del servidor de correo saliente"""
+        if 'SMTP Port' in self.c.keys():
+            return hex2dec(self.c['SMTP Port'])
+        else:
+            return 25
+
+    def get_SMTP_server(self):
+        """Devuelve el servidor de correo saliente"""
+        return self.c['SMTP Server']
+
+    def get_SMTP_email_address(self):
+        """Devuelve la direccion de correo saliente"""
+        if 'SMTP Email Address' in self.c.keys():
+            return self.c['SMTP Email Address']
+        elif 'Email' in self.c.keys():
+            return self.c['Email']
+
+
+    def get_SMTP_timeout(self):
+        """Devuelve el tiempo de espera del servidor de correo saliente"""
+        if 'SMTP Timeout' in self.c.keys():
+            return hex2dec(self.c['SMTP Timeout'])
+        else: 
+            return 60
+
+    def use_SMTP_SSL(self):
+        """Devuelve si la conexión con el servidor de correo saliente es segura"""
+        if 'SMTP Secure Connection' in self.c.keys():
+            return hex2dec(self.c['SMTP Secure Connection'])
+        elif 'SMTP Use SSL' in self.c.keys():
+            return hex2dec(self.c['SMTP Use SSL'])
+
+    def leave_mail(self):
+        """Devuelve si los mensajes deben conservarse en el servidor"""
+        r = 'false'
+        if 'Leave Mail On Server' in self.c.keys():
+            r = hex2dec(self.c['Leave Mail On Server']) and 'true' or 'false'
+        return r
+        
+    def readconfig_wm(self, config):
+        c = {}
+        xmldoc = minidom.parse(config)
+        for node in xmldoc.firstChild.childNodes:
+            if node.nodeType == node.ELEMENT_NODE:
+                c[node.tagName.replace('_',' ')] = node.firstChild.data
+        return c
+        
+    
+            
+# end class mail
+
+############################################################################
+
+class mailreader(application):
+    
+    def initialize(self):
+        self.name = _("Lector de correo")
+        self.description = _("Configuracion del lector de correo")
+        
+    def get_configuration(self):
+       pass
+
+    def do(self):
+        self.update_progress(5.0)
+        self.import_account()
+        self.update_progress(25.0)
+        self.import_mail()
+        self.update_progress(60.0)
+        self.import_contacts()
+        self.update_progress(80.0)
+        self.import_calendar()
+        return 1
+
+    def import_mail(self):
+        pass
+
+    def import_account(self):
+        self.config_EVOLUTION()
+        self.config_THUNDERBIRD()
+        
+    def import_calendar(self):
+        self.config_EVOLUTION_calendar()
+        
+    def import_contacts(self):
+        self.config_EVOLUTION_addressbook()
+
+    def config_EVOLUTION(self):
+        """Configura la cuenta dada en Evolution"""
+        
+        a = self.mailconfig
+        ssl = a.use_SSL() and 'always' or 'never'
+        smtpssl = a.use_SMTP_SSL() and 'always' or 'never'
+        server_type = a.get_type()
+        if server_type == 'pop3':
+            m = 'pop'
+            draft = "mbox:" + os.path.expanduser('~') + "/.evolution/mail/local#Drafts"
+            sent = "mbox:" + os.path.expanduser('~') + "/.evolution/mail/local#Sent"
+            command = ''
+        elif server_type == 'imap':
+            m = 'imap'
+            draft, sent = '', ''
+            command = ";check_all;command=ssh%20-C%20-l%20%25u%20%25h%20exec%20/usr/sbin/imapd"
+        elif server_type == "HTTPMail" or server_type == "Unknown":
+            warning("Account type %s won't be added" % server_type)
+            return 0
+        # get previous accounts
+        try:
+            l = os.popen("gconftool --get /apps/evolution/mail/accounts")
+            laccounts = str(l.read())
+            l.close()
+            if not laccounts:
+                laccounts = "[]\n"
+        except:
+            error ("Evolution configuration is not readable")
+        else:
+            # generate new xml list
+            e = "<?xml version=\"1.0\"?>\n" + \
+            "<account name=\"%s\" uid=\"%s\" enabled=\"true\">" % (a.get_account_name(), str(time.time())) + \
+            "<identity>" + \
+            "<name>%s</name>" % a.get_SMTP_display_name() + \
+            "<addr-spec>%s</addr-spec><signature uid=\"\"/>" % a.get_SMTP_email_address() + \
+            "</identity>" + \
+            "<source save-passwd=\"false\" keep-on-server=\"%s\" auto-check=\"true\" auto-check-timeout=\"10\">" % a.leave_mail() + \
+            "<url>%s://%s@%s:%d/%s;use_ssl=%s</url>" % (m, a.get_user_name().replace('@','%40'), a.get_server(), a.get_port(), command, ssl) + \
+            "</source>" + \
+            "<transport save-passwd=\"false\">" + \
+            "<url>smtp://%s;auth=PLAIN@%s:%d/;use_ssl=%s</url>" % (a.get_user_name().replace('@','%40'), a.get_SMTP_server(), a.get_SMTP_port(), smtpssl) + \
+            "</transport>" + \
+            "<drafts-folder>%s</drafts-folder>" % draft + \
+            "<sent-folder>%s</sent-folder>" % sent + \
+            "<auto-cc always=\"false\"><recipients></recipients></auto-cc><auto-bcc always=\"false\"><recipients></recipients></auto-bcc><receipt-policy policy=\"never\"/>" + \
+            "<pgp encrypt-to-self=\"false\" always-trust=\"false\" always-sign=\"false\" no-imip-sign=\"false\"/><smime sign-default=\"false\" encrypt-default=\"false\" encrypt-to-self=\"false\"/>" + \
+            "</account>\n"
+            # concatenate elemennt to the list
+            print e
+            if laccounts == "[]\n":
+                #create list
+                laccounts = "[" + e +"]"
+            else:
+                #add to list
+                laccounts = laccounts[:-2] + ',' + e + "]"
+            # set the modified list
+            try:
+                os.system("gconftool --set /apps/evolution/mail/accounts --type list --list-type string \"" + laccounts.replace("\"", "\\\"") +"\"")
+                progress("Account %s added successfully" % a.get_account_name())
+            except:
+                error ("Evolution configuration is not writable")
+    
+    def config_EVOLUTION_calendar(self):
+        vcal = os.path.join(self.dest.path, _("Calendario"))
+        old = None
+        if os.path.exists(vcal):
+            evo_cal = os.path.join(os.path.expanduser('~'),'.evolution','calendar','local','system','calendar.ics')
+            folder(os.path.dirname(evo_cal))
+            if os.path.exists(evo_cal):
+                old = backup(evo_cal)
+                if old:
+                    new_cal = open(evo_cal, "w")
+                    old_cal = open(old, 'r')
+                    for l in old_cal.readlines():
+                        if l.find('END:VCALENDAR') == -1:
+                            new_cal.write(l)
+                    old_cal.close()
+            orig = open(vcal,"r")
+            events = False
+            if not old:
+                new_cal = open(evo_cal, "w")
+                new_cal.write('BEGIN:VCALENDAR\n')
+                new_cal.write('CALSCALE:GREGORIAN\n')
+                new_cal.write('VERSION:2.0\n')
+            for l in orig.readlines():
+                if l.find('BEGIN:VEVENT') != -1:
+                    events = True
+                if events:
+                    new_cal.write(l)
+            new_cal.write('END:VCALENDAR\n')
+            orig.close()
+            os.remove(vcal)
+                
+    def config_EVOLUTION_addressbook(self):
+        """Lee los contactos alamcenados en Evolution"""
+        vcard = os.path.join(self.dest.path, _("Contactos"))
+        if os.path.exists(vcard):
+            import bsddb
+            adb=os.path.join(os.path.expanduser('~'),'.evolution','addressbook','local','system','addressbook.db')
+            folder(os.path.dirname(adb))
+            db = bsddb.hashopen(adb,'w')
+            contacts = open(vcard, 'r')
+            while 1:
+                l = contacts.readline()
+                if not l:
+                    break
+                if l.find('BEGIN:VCARD') != -1:
+                    randomid = 'pas-id-' + str(random.random())[2:]
+                    db[randomid+'\x00'] = 'BEGIN:VCARD\r\nUID:' + randomid + '\r\n'
+                    while 1:
+                        v = contacts.readline()
+                        if v.find('END:VCARD') != -1:
+                            db[randomid+'\x00'] += 'END:VCARD\x00'
+                            break
+                        else:
+                            db[randomid+'\x00'] += v.replace('\n', '\r\n')
+            db.sync()
+            db.close()
+            os.remove(vcard)
+    
+    def config_THUNDERBIRD(self):
+        th = thunderbird()
+        try:
+            th.config_account(self.mailconfig)
+        except:
+            pass
+
+
+class outlook12(mailreader):
+    
+    def initialize(self):
+        self.name = _("Outlook 2007")
+        self.description = _("Configuración de MS Office Outlook 2007")
+        self.pst = os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', 'Outlook.pst')
+        self.mailconfig = self.get_configuration()
+        self.size = os.path.getsize(self.pst)/1024
+        self.description = _("MS Office Outlook 2007") + ": " + self.mailconfig.get_SMTP_email_address()
+
+
+    def get_configuration(self):
+        r = self.user.search_key(self.option)
+        if not "Email" in r.keys():
+            raise Exception
+        pst = None
+        for k, v in r.iteritems():
+            if v.startswith('hex'):
+                r[k]=hex2str(v)
+            if k.find('pst') > 0:
+                pst = k
+            if k == 'IMAP Store EID':
+                pst = r[k]
+        if pst:
+            i = pst.find(':')
+            pst = pst.replace(pst[:i+1], self.user.mount_points[pst[i-1:i+1]])
+            pst = pst.replace('\\','/')
+            if os.path.exists(pst):
+                self.pst = pst
+        return mailconfig(r)
+
+    def import_mail(self):
+        readpst = os.path.join(__DIR_PST2MBX__,'readpst')
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
+        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        try:
+            f = os.popen (com)
+            print f.read()
+            f.close()
+        except:
+            self.error = "Failed to convert mailboxes"
+        else:
+            pass
+
+
+
+class outlook11(mailreader):
+    
+    def initialize(self):
+        self.name = _("Outlook XP/2002/2003")
+        self.pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))[0]
+        self.mailconfig = self.get_configuration()
+        self.size = 0
+        if os.path.exists(self.pst):
+            self.size = os.path.getsize(self.pst)/1024
+        self.description = _("MS Office Outlook XP/2002/2003") + ": " +self.mailconfig.get_SMTP_email_address()  
+
+    def get_configuration(self):
+        r = self.user.search_key(self.option)
+        if not "Email" in r.keys():
+            raise Exception
+        for k, v in r.iteritems():
+            if v.startswith('hex'):
+                r[k]=hex2str(v)
+        c = mailconfig(r)
+        try:
+            pst_file = "*Outlook*"+c.get_server()+'-'+self.option.split('\\')[-1][:-3]+'.pst'
+            pst_file = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', pst_file))[0]
+            if os.path.exists(pst_file):
+                self.pst = pst_file
+        except:
+            pass
+        return c
+
+    def import_mail(self):
+        readpst = os.path.join(__DIR_PST2MBX__,'readpst')
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
+        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        try:
+            f = os.popen (com)
+            print f.read()
+            f.close()
+        except:
+            self.error = "Failed to convert mailboxes"
+        else:
+            pass
+
+
+class outlook9(mailreader):
+    
+    def initialize(self):
+        self.name = _("Outlook 2000")
+        self.description = _("Configuración de MS Office Outlook")
+        self.pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))[0]
+        self.mailconfig = self.get_configuration()
+        if os.path.exists(self.pst):
+            self.size = os.path.getsize(self.pst)/1024
+        else:
+            self.size = 0
+        self.description = _("MS Office Outlook 2000") + ": " + self.mailconfig.get_SMTP_email_address()
+
+
+    def get_configuration(self):
+        r = self.user.search_key(self.option)
+        for k, v in r.iteritems():
+            if k.find('pst') > 0:
+                pst = k.replace(k[:2], self.user.mount_points[k[:2]])
+                if os.path.exists(pst):
+                    self.pst = pst
+        return mailconfig(r)
+
+    def import_mail(self):
+        readpst = os.path.join(__DIR_PST2MBX__,'readpst')
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
+        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        try:
+            f = os.popen (com)
+            print f.read()
+            f.close()
+        except:
+            self.error = "Failed to convert mailboxes"
+        else:
+            pass
+
+        
+
+
+class outlook_express(mailreader):
+    
+    def initialize(self):
+        self.name = _("Outlook Express")
+        self.description = _("Configuración de Outlook Express")
+        #self.pst = self.get_configuration()
+        self.mailconfig = mailconfig(self.get_configuration())
+        self.size = self.dbx_dir.get_size()
+        self.description = _("MS Outlook Express") + ": " + self.mailconfig.get_SMTP_email_address()
+
+
+    def get_configuration(self):
+        r = self.user.search_key(self.option)
+        self.dbx_dir = folder(glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Identities','{*}','Microsoft','Outlook Express'))[0])
+        return r
+
+    def import_mail(self):
+        """Convierte el archivo .dbx que se le pasa y lo integra en Evolution"""
+        readdbx = os.path.join(__DIR_DBX2MBX__,'readoe')
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Outlook Express")+'.sbd'))
+        com = '%s -i %s -o %s' % (readdbx, self.dbx_dir.path.replace(' ',"\ "),self.dest.path.replace(' ',"\ "))
+        try:
+            os.system (com)
+        except:
+            self.error = "Failed to convert mailboxes"
+
+
+
+    def import_contacts(self):
+        pass
+        
+
+class windowsmail(mailreader):
+    
+    def initialize(self):
+        self.name = _("Windows Mail")
+        self.description = _("Configuracion de Windows Mail")
+        self.mb_dir = None
+        self.mailconfig = self.get_configuration()
+        self.size = self.mb_dir.get_size()
+        self.description = _("Windows Mail") + ": " + self.mailconfig.get_SMTP_email_address()
+
+
+    def get_configuration(self):
+        self.mb_dir = folder(os.path.join(os.path.split(self.option)[0], 'Inbox'))
+        return mailconfig(self.option)
+
+    def import_mail(self):
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Windows Mail")+'.sbd'))
+        #eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, 'Inbox'))
+        eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, self.mailconfig.get_SMTP_email_address()))
+        if self.mailconfig.get_type() == 'imap':
+            pass
+        elif self.mailconfig.get_type() == 'pop3':
+            pass
+
+        
+    def import_calendar(self):
+        pass
+        
+    def import_contacts(self):
+        pass
+
+class windowslivemail(windowsmail):
+    
+    def initialize(self):
+        self.name = _("Windows Live Mail")
+        self.description = _("Configuración de Windows Mail")
+        self.mb_dir = None
+        self.mailconfig = self.get_configuration()
+        self.size = self.mb_dir.get_size()
+        self.description =_("Windows Live Mail") + ": " + self.mailconfig.get_SMTP_email_address()
+                
+    def import_mail(self):
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Windows Live Mail")+'.sbd'))
+        eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, self.mailconfig.get_SMTP_email_address()))
+
+
+class winthunderbird(mailreader):
+    
+    def initialize(self):
+        self.name = _("Mozilla Thunderbird")
+        self.mb_dir = None
+        self.mailconfig = self.get_configuration()
+        self.size = self.mb_dir.get_size()
+        self.description =_("Mozilla Thunderbird") + ": " + self.mailconfig.get_SMTP_email_address()
+
+    def get_configuration(self):
+        prefs = self.user.get_THUNDERBIRD_prefs()
+        p = open(prefs, 'r')
+        content = p.readlines()
+        p.close()
+        id = 0
+        c = {}
+        
+        pid = re.compile('.*'+self.option+'\.identities\".+\"(?P<id>\w+)\".+')
+        pserver = re.compile('.*'+self.option+'\.server\".+\"(?P<server>\w+)\".+')
+        
+        for l in content:
+            m = pid.match(l)
+            if m:
+                id = m.group('id')
+                psmtp = re.compile('.*'+id+'\.smtpServer\".+\"(?P<smtp>\w+)\".+')
+            else:
+                m = pserver.match(l)
+                if m:
+                    server = m.group('server')
+                elif id:
+                    m = psmtp.match(l)
+                    if m:
+                        smtp = m.group('smtp')
+        pid = re.compile('.*mail\.identity\.'+id+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\d+)\).+')
+        pserver = re.compile('.*mail\.server\.'+server+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
+        psmtp = re.compile('.*mail\.smtpserver\.'+smtp+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
+        for l in content:
+            m = pid.match(l)
+            if m:
+                c[m.group('key')]=m.group('value').replace('\"','')
+            else:
+                m = pserver.match(l)
+                if m:
+                    c[m.group('key')]=m.group('value').replace('\"','')
+                else:
+                    m = psmtp.match(l)
+                    if m:
+                        c['smtp'+m.group('key')]=m.group('value').replace('\"','')
+        return mailconfig(self.check_config(c))
+        
+    def check_config(self, c):
+
+        c[c['type'].upper()+' Server'] = c['hostname']
+        c[c['type'].upper()+' User Name'] = c['userName']
+        if 'port' in c.keys(): c[c['type'].upper()+' Port']=eval(c['port'])
+        if 'socketType' in c.keys(): 
+            c['Connection Type'] = str(c['socketType'])
+            if c['socketType'] == '3':
+                c[c['type'].upper()+' Use SSL'] = '1'
+        c['Account Name'] = c['name']
+        c['SMTP Display Name'] = c['fullName']
+        c['SMTP Email Address'] = c['smtpusername']
+        c['SMTP Server'] = c['smtphostname']
+        if 'smtpport' in c.keys(): c['SMTP Port']=eval(c['smtpport'])
+        if 'smtptry_ssl' in c.keys(): c['SMTP Use SSL'] = '1'
+        c['Email Address'] = c['useremail']
+        if 'leave_on_server' in c.keys():
+            c['Leave Mail On Server'] = '1'
+        if 'empty_trash_on_exit' in c.keys():
+            c['Remove When Deleted'] = '1'
+        
+        #print c
+        #print c['directory-rel'].replace("[ProfD]",os.path.dirname(self.user.get_THUNDERBIRD_prefs())+'/')
+        self.mb_dir = folder(c['directory-rel'].replace("[ProfD]",os.path.dirname(self.user.get_THUNDERBIRD_prefs())+'/'))
+        return c
+        
+    def import_mail(self):
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Thunderbird")+'.sbd'))
+        self.mb_dir.copy(self.dest.path, exclude=['.dat','.msf'])
+        
+
+########################################################################
+########################################################################
+
+def hex2dec(hexa):
+    """Convierte valores hexadecimales del registro en valores enteros"""
+    if not isinstance(hexa, int):
+        hexa = hexa.replace('dword:','0x')
+        return int(hexa, 16)
+    else:
+        return int(hexa)
+
+
+def hex2str(hexa):
+    """Convierte valores hexadecimales del registro en cadenas de caracteres"""
+    hexa = hexa.replace('hex:','')
+    hexa = hexa.replace(',00','')
+    hexa = hexa.replace(',','')
+    hexa = hexa.replace(' ','')
+    return binascii.unhexlify(hexa)
+      
+def eml2mbox(emlpath, mbxpath):
+    i = 0
+    pattern = re.compile('(?P<date>Date:)\s+(?P<day>\w{3})\s+(?P<number>\d{1,2})\s+(?P<month>\w{3})\s+(?P<year>\d{4})\s+(?P<hour>[\d:]{5,8}).+')
+    try:
+        d = open(mbxpath, 'w')
+    except: 
+        return 0
+    for e in os.listdir(emlpath):
+        if os.path.splitext(e)[-1] == '.eml':
+            try:
+                m = open(os.path.join(emlpath, e),'r')
+                content = m.readlines()
+                m.close()
+            except:
+                continue
+            else:
+                for l in content:
+                    r = pattern.match(l.replace(',',''))
+                    if r:
+                        d.write("From - %s %s  %s %s %s\n" % (r.group('day'),
+                                                            r.group('month'),
+                                                            r.group('number'),
+                                                            r.group('hour'),
+                                                            r.group('year')))
+                        for l in content:
+                            d.write(l.replace('\r', ''))
+                        d.write('\n\n')
+                        i += 1
+                        break
+    d.close()
+    print "%d archivos procesados" % i
+
+       
+
+class thunderbird:
+    """Clase para el gestro de correo Thunderbird"""
+
+    def __init__(self):
+        """Constructor de la clase"""
+        thunderbird = folder(os.path.join(os.path.expanduser('~'),'.mozilla-thunderbird'))
+        self.profile = self.get_thunderbird_profile(thunderbird.path)
+        self.errors = []
+        if not self.profile and thunderbird.path:
+            try:
+                prof = open(os.path.join(thunderbird.path,'profiles.ini'), 'w')
+                prof.write("[General]\n")
+                prof.write("StartWithLastProfile=1\n\n")
+                prof.write("[Profile0]\n")
+                prof.write("Name=migrated\n")
+                prof.write("IsRelative=1\n")
+                prof.write("Path=m1gra73d.default\n")
+                prof.close()
+                self.profile = thunderbird.create_subfolder("m1gra73d.default")
+            except:
+                self.error("Unable to create Mozilla Thunderbird profile")
+                return 0
+        self.config_file  = os.path.join(self.get_thunderbird_profile(thunderbird.path), 'prefs.js')
+
+    def error (self, e):
+        """Almacena los errores en tiempo de ejecución"""
+        self.errors.append(e)
+
+    def get_thunderbird_profile(self, thunderbird = '~/.mozilla-thunderbird'):
+        """Devuelve el perfil actual de Thunderbird. En caso de no existir crea uno nuevo"""
+        profiles_ini = os.path.join(thunderbird,'profiles.ini')
+        if os.path.exists(profiles_ini):
+            try:
+                prof = open(profiles_ini, 'r')
+            except:
+                self.error ('Unable to read Thunderbird profiles')
+            else:
+                relative = 0
+                for e in prof.read().split('\n'):
+                    if re.search("IsRelative=1",e):
+                        relative = 1
+                    if re.search("Path",e):
+                        profile = e.split('=')[1]
+                prof.close()
+                if relative:
+                    path_profile = os.path.join(thunderbird, profile)
+                else:
+                    path_profile = profile
+                if path_profile[-1]=='\r':
+                    return path_profile[:-1]
+                else:
+                    return path_profile
+
+    def config_account(self, account):
+        """Configura la cuenta leida del registro"""
+        n = str(random.randint(100,999))
+        #check if the mail config is valid
+        a = account
+        server_type = a.get_type()
+        if server_type == "HTTPMail" or server_type == "Unknown":
+            warning("Acoount type %s won't be added" % server_type)
+            return 0
+        elif os.path.exists(self.config_file):
+            bak = backup (self.config_file)
+            try:
+                p = open(self.config_file, 'w')
+                b = open(bak, 'r')
+            except:
+                p.close()
+                b.close()
+                self.error('Unable to modify %s' % self.config_file)
+                return 0
+            else:
+                added_account, added_smtpserver = False, False
+                for l in b.readlines():
+                    if re.search('mail.accountmanager.accounts',l): #add the new account
+                        l = l[:-4] + ',account' + n + l[-4:]
+                        added_account = True
+                    if re.search('mail.smtpservers', l): #add the new smtp
+                        l = l[:-4] + ',smtp' + n + l[-4:]
+                        added_smtpserver = True
+                    p.write(l)
+                if not added_account:
+                    p.write("user_pref(\"mail.accountmanager.accounts\", \"account%s\");\n" % n)
+                if not added_smtpserver:
+                    p.write("user_pref(\"mail.smtpservers\", \"smtp%s\");\n" % n)
+                b.close()
+        else:
+            try:
+                p = open(self.config_file, 'w')
+            except:
+                self.error('Unable to create %s' % self.config_file)
+                return 0
+            else:
+                p.write("# Mozilla User Preferences\n\n")
+                p.write("user_pref(\"mail.accountmanager.accounts\", \"account%s\");\n" % n)
+                p.write("user_pref(\"mail.smtpservers\", \"smtp%s\");\n" % n)
+                p.write("user_pref(\"mail.root.none\", \"%s/Mail\");\n" % self.profile)
+                p.write("user_pref(\"mail.root.none-rel\", \"[ProfD]Mail\");\n")
+                if server_type == "imap":# only for IMAP accounts
+                    p.write("user_pref(\"mail.root.imap\", \"%s/ImapMail\");\n" % self.profile)
+                    p.write("user_pref(\"mail.root.imap-rel\", \"[ProfD] ImapMail\");\n")
+                    #p.write("user_pref(\"mail.server.server%s.directory\", \"%s/ImapMail/%s\");\n"% (n, self.profile, a.get_server()))
+                elif server_type == "pop3": # only for POP3 accounts
+                    p.write("user_pref(\"mail.root.pop3\", \"%s/Mail\");\n" % self.profile)
+                    p.write("user_pref(\"mail.root.pop3-rel\", \"[ProfD]Mail\");\n")
+                    #p.write("user_pref(\"mail.server.server%s.leave_on_server\", %s);\n" % (n, a.leave_mail()))
+                    #p.write("user_pref(\"mail.server.server%s.directory\", \"%s/Mail/%s\");\n" % (n, self.profile, a.get_server()))
+                    #p.write ("user_pref(\"mail.server.server%s.delete_by_age_from_server\", %s);\n" % (n, a.remove_deleted()))
+                    #p.write("user_pref(\"mail.server.server%s.delete_mail_left_on_server\", %s);\n" % (n, a.remove_expired()))
+        # for both types
+        p.write("user_pref(\"mail.account.account%s.identities\", \"id%s\");\n" % (n, n))
+        p.write("user_pref(\"mail.account.account%s.server\", \"server%s\");\n" % (n, n))
+        # identity configuration
+        p.write("user_pref(\"mail.identity.id%s.fullName\", \"%s\");\n" % (n, a.get_SMTP_display_name()))
+        p.write("user_pref(\"mail.identity.id%s.useremail\", \"%s\");\n" % (n, a.get_SMTP_email_address()))
+        p.write("user_pref(\"mail.identity.id%s.smtpServer\", \"smtp%s\");\n" % (n, n))
+        p.write("user_pref(\"mail.identity.id%s.valid\", true);\n" % n )
+        # server configuration
+        p.write("user_pref(\"mail.server.server%s.login_at_startup\", true);\n" % n )
+        p.write("user_pref(\"mail.server.server%s.name\", \"%s\");\n" % (n, a.get_account_name()))
+        p.write("user_pref(\"mail.server.server%s.hostname\", \"%s\");\n"% (n, a.get_server()))
+        p.write("user_pref(\"mail.server.server%s.type\", \"%s\");\n" % (n, server_type))
+        p.write("user_pref(\"mail.server.server%s.userName\", \"%s\");\n" % (n, a.get_user_name()))
+        if a.use_SSL():
+            p.write("user_pref(\"mail.server.server%s.socketType\", 3);\n"% n)
+            p.write("user_pref(\"mail.server.server%s.port\", %d);\n" % (n, a.get_port()))
+        # SMTP configuration
+        p.write("user_pref(\"mail.smtpserver.smtp%s.hostname\", \"%s\");\n" % (n, a.get_SMTP_server()))
+        p.write("user_pref(\"mail.smtpserver.smtp%s.username\", \"%s\");\n" % (n, a.get_user_name()))
+        if a.use_SMTP_SSL():
+            p.write("user_pref(\"mail.smtpserver.smtp%s.try_ssl\", 3);\n" % n)
+            p.write("user_pref(\"mail.smtpserver.smtp%s.port\", %d);\n" % (n, a.get_SMTP_port()))
+        p.close()
+
+    def import_windows_settings(self, AppData):
+        """Importa la configuración de Thunderbird en Windows. SOBREESCRIBE LA INFORMACIÓN EXISTENTE"""
+        winprofile = folder(self.get_thunderbird_profile(os.path.join(AppData, 'Thunderbird')))
+        if winprofile:
+            # copy all files from the winprofile
+            winprofile.copy(self.profile)
+            # modify prefs.js
+            try:
+                wp = open (os.path.join(winprofile.path, 'prefs.js'), 'r')
+                p = open (self.config_file, 'w')
+                for l in wp.readlines():
+                    if l.find(':\\') == -1:
+                        p.write(l)
+            except:
+                self.error("Failed to copy Thunderbird profile")
+            wp.close()
+            p.close()
+        return 0
+
+    def is_installed_on_Windows(self, AppData):
+        """Devuelve si Firefox está instalado en Windows"""
+        return self.get_thunderbird_profile(os.path.join(AppData.path, 'Thunderbird'))
+
+    def generate_impab(self, l):
+        try:
+            backup(os.path.join(self.profile,'impab.mab'))
+            f = open(os.path.join(self.profile,'impab.mab'),'w')
+        except:
+            self.error( "Fallo al crear contactos de Thunderbird")
+        else:
+            f.write("// <!-- <mdb:mork:z v=\"1.4\"/> -->\n< <(a=c)> // (f=iso-8859-1)\n  (B8=Custom3)(B9=Custom4)(BA=Notes)(BB=LastModifiedDate)(BC=RecordKey)\n  (BD=AddrCharSet)(BE=LastRecordKey)(BF=ns:addrbk:db:table:kind:pab)\n  (C0=ListName)(C1=ListNickName)(C2=ListDescription)\n  (C3=ListTotalAddresses)(C4=LowercaseListName)\n  (C5=ns:addrbk:db:table:kind:deleted)\n  (80=ns:addrbk:db:row:scope:card:all)\n  (81=ns:addrbk:db:row:scope:list:all)\n  (82=ns:addrbk:db:row:scope:data:all)(83=FirstName)(84=LastName)\n  (85=PhoneticFirstName)(86=PhoneticLastName)(87=DisplayName)\n  (88=NickName)(89=PrimaryEmail)(8A=LowercasePrimaryEmail)\n  (8B=SecondEmail)(8C=DefaultEmail)(8D=CardType)(8E=PreferMailFormat)\n  (8F=PopularityIndex)(90=WorkPhone)(91=HomePhone)(92=FaxNumber)\n  (93=PagerNumber)(94=CellularNumber)(95=WorkPhoneType)(96=HomePhoneType)\n  (97=FaxNumberType)(98=PagerNumberType)(99=CellularNumberType)\n  (9A=HomeAddress)(9B=HomeAddress2)(9C=HomeCity)(9D=HomeState)\n  (9E=HomeZipCode)(9F=HomeCountry)(A0=WorkAddress)(A1=WorkAddress2)\n  (A2=WorkCity)(A3=WorkState)(A4=WorkZipCode)(A5=WorkCountry)\n  (A6=JobTitle)(A7=Department)(A8=Company)(A9=_AimScreenName)\n  (AA=AnniversaryYear)(AB=AnniversaryMonth)(AC=AnniversaryDay)\n  (AD=SpouseName)(AE=FamilyName)(AF=DefaultAddress)(B0=Category)\n  (B1=WebPage1)(B2=WebPage2)(B3=BirthYear)(B4=BirthMonth)(B5=BirthDay)\n  (B6=Custom1)(B7=Custom2)>\n\n")
+
+            f.write("<(80=0)>\n{1:^80 {(k^BF:c)(s=9)}\n  [1:^82(^BE=0)]}\n\n")
+
+            f.write("@$${1{@\n\n<")
+            i, j = 1, 1
+            for a in l:
+                f.write("(%d=%d)(%d=%s)"%(80 + 2*(len(l) - j + 1) , len(l) - j + 1 , 80 + i, a ))
+                i += 2
+                j += 1
+            f.write(">\n{-1:^80 {(k^BF:c)(s=9)} \n  [1:^82(^BE=%d)]"%(j-1))
+            i, j = 1, 1
+            for a in l:
+                f.write("\n  [-%d(^89^%d)(^8A^%d)(^BC=%d)]"%(j, 80+i, 80+i, j))
+                i += 2
+                j += 1
+            f.write("}\n@$$}1}@")
+            f.close()
+            self.add_impab()
+            return 1
+
+    def add_impab(self):
+        p = None
+        if os.path.exists(self.config_file):
+            bak = backup (self.config_file)
+            try:
+                p = open(self.config_file, 'a')
+            except:
+                p.close()
+                self.error('Unable to modify %s' % self.config_file)
+                return 0
+
+        else:
+            try:
+                p = open(self.config_file, 'w')
+            except:
+                self.error('Unable to create %s' % self.config_file)
+                return 0
+            else:
+                p.write("# Mozilla User Preferences\n\n")
+                p.write("user_pref(\"mail.accountmanager.accounts\", \"\");\n")
+                p.write("user_pref(\"mail.smtpservers\", \"\");\n")
+                p.write("user_pref(\"mail.root.none\", \"%s/Mail\");\n"%self.profile)
+                p.write("user_pref(\"mail.root.none-rel\", \"[ProfD]Mail\");\n")
+        if p:
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.description\", \"contactos_Outlook\");\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.dirType\", 2);\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.filename\", \"impab.mab\");\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.isOffline\", false);\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.protocolVersion\", \"2\");\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.replication.lastChangeNumber\", 0);\n")
+            p.write("user_pref(\"ldap_2.servers.contactosOutlook.position\", 1);\n")
+            p.close()
+
+# end class thunderbird
+
+############################################################################
+
+
+class kmail:
+    """Clase para el gestor de correo Kmail integrado en Kontact"""
+
+    def __init__(self):
+        """Constructor de la clase"""
+        self.errors = []
+        self.config_file = os.path.join(os.path.expanduser('~'),'.kde', 'share', 'config', 'kmailrc')
+        if os.path.exists(self.config_file):
+            try:
+                b = open (self.config_file, 'r')
+                for l in b.readlines():
+                    if re.search('accounts=',l): # increase account
+                        self.iaccount = int(l[9:]) + 1
+                    if re.search('transports=', l): # increase smtp
+                        self.itransport = int(l[11:]) + 1
+                b.close()
+            except:
+                b.close()
+                self.error("Unable to read %s" % self.config_file)
+        else:
+            self.iaccount, self.itransport = 0, 0
+            try:
+                b = open (self.config_file, 'r')
+                b.write("[Composer]\n")
+                b.write("default-transport=%s\n" % a.get_SMTP_display_name())
+                b.write("\n[General]\n")
+                b.write("accounts=1\n")
+                b.write("checkmail-startup=true\n")
+                b.write("first-start=false\n")
+                b.write("transports=1\n")
+                b.close()
+            except:
+                b.close()
+                self.error("Unable to create %s" % self.config_file)
+        self.identities = os.path.join(os.path.expanduser('~'), '.kde', 'share', 'config', 'emailidentities')
+        self.maxid = 0
+        if os.path.exists(self.identities):# configuration file already exists
+            try:
+                b = open(self.identities, 'r')
+                for l in b.readlines():
+                    if re.search('Identity #',l): # increase account
+                        maxid = (maxid <= int(l[11:-2])) and int(l[11:-2]) + 1 or maxid
+                b.close()
+            except:
+                b.close()
+                self.error('Unable to access %s' % self.identities)
+
+
+    def error(self, e):
+        """Almacena los errores en tiempo de ejecución"""
+        self.errors.append(e)
+
+    def config_account(self, account):
+        """Configura la cuenta dada en Kmail"""
+        #check if the mail config is valid
+        a = mailconfig(account)
+        server_type = a.get_type()
+        if server_type == "HTTPMail" or server_type == "Unknown":
+            warning("Acoount type %s won't be added" % server_type)
+            return 0
+        self.itransport = self.itransport + 1
+        self.iaccount = self.iaccount + 1
+        bak = backup (self.config_file)
+        if bak:
+            try:
+                p = open(self.config_file, 'w')
+                # config account
+                p.write("\n[Account %i]\n" % self.iaccount)
+                p.write("Folder=inbox\n")
+                p.write("Id=%s\n" % str(time.time()))
+                p.write("Name=%s\n" % a.get_account_name())
+                if server_type=='imap':
+                    p.write("auth=*\n")
+                    p.write("Type=%s\n" % server_type)
+                if server_type=='pop3':
+                    p.write("auth=USER\n")
+                    p.write("Type=pop\n")
+                p.write("host=%s\n" % a.get_server())
+                p.write("leave-on-server=%s\n" % a.leave_mail())
+                p.write("login=%s\n" % a.get_user_name())
+                p.write("port=%s\n" % a.get_port())
+                p.write("use-ssl=%s\n" % a.use_SSL())
+                p.write("use-tls=false\n")
+                #config transport (SMTP)
+                p.write("\n[Transport %i]\n" % self.itransport)
+                p.write("auth=false\n")
+                p.write("authtype=PLAIN\n")
+                p.write("encryption=SSL\n")
+                p.write("host=%s\n" % a.get_SMTP_server())
+                p.write("id=%s\n" % str(time.time()))
+                p.write("name=%s\n" % a.get_SMTP_server())
+                p.write("port=%s\n" % a.get_SMTP_port())
+                p.write("type=smtp\n")
+                p.write("user=\n")
+                p.close()
+                #config identity
+                self.add_identity(account)
+            except:
+                p.close()
+                self.itransport = self.itransport - 1
+                self.iaccount = self.iaccount - 1
+                self.error('Failed to modify %s' % self.config_file)
+                return 0
+
+    def add_identity(self, a):
+        """Añade la identidad"""
+        bak = backup(self.identities)
+        if bak:
+            try:
+                p = open(self.identities, 'a')
+                p.write("\n[Identity #%i]\n" % self.maxid)
+                p.write("Email Address=%s\n" % a.get_SMTP_email_address())
+                p.write("Name=%s\n" % a.get_SMTP_display_name())
+                p.write("Transport=%s\n" % a.get_SMTP_server())
+                p.write("uoid=%s\n" % str(time.time()*100))
+                p.close()
+            except:
+                p.close()
+                self.error("Failed to add identity")
+                restore_backup(bak)
+
+# end class kmail
+
+############################################################################
+
+
+if __name__ == "__main__":
+    from amigu.computer.info import pc
+    from amigu.computer.users.mswin import winuser
+    com = pc()
+    com.check_all_partitions()
+    print "Analizando usuarios de Windows"
+    for user_path, ops in com.get_win_users().iteritems():
+        u = winuser(user_path, com, ops)
+        try:
+            print u.get_OUTLOOK_accounts()
+        except:
+            pass
+        u.clean()
