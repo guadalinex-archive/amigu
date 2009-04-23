@@ -17,7 +17,12 @@ class application:
         self.status = 0
         self.progress = 0
         self.option = option
-        self.initialize()
+        try:
+            self.initialize()
+        except:
+            cla, exc, trbk = sys.exc_info()
+            print "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
+            raise Exception
         self.error = ''
 
     def initialize(self):
@@ -33,6 +38,7 @@ class application:
         except:
             cla, exc, trbk = sys.exc_info()
             self.error = "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
+            
 
 
     def do(self):

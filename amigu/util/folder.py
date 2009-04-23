@@ -30,6 +30,12 @@ def restore_backup(backup):
         except (IOError, os.error), why:
             error("Can't restore backup %s: %s" % (backup, str(why)))
 
+def odf_converter(file, format = 'pdf'):
+    try:
+        os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
+    except:
+        pass
+
 def error(e):
     """Error handler"""
     print e
@@ -54,6 +60,9 @@ class folder:
     #
     # extensiones
     #
+    document_files = ['.sxv', '.doc', '.xml', '.rtf', '.sdw']
+    presentation_files = ['.pot', '.ppt']
+    spread_files = ['.xls', '.xlt', '.sxc']
     texto = ['.sxv', '.stw', '.doc', '.rtf', '.sdw', '.var', '.txt', '.html', '.htm', '.pdf']
     calculo = ['.sxc', '.stc', '.dif', '.dbf', '.xls', '.xlw', '.xlt', '.sdc', '.vor', '.slk', '.csv', '.txt', '.html', '.htm']
     presentacion = ['.sxi', '.sti', '.ppt', '.pps', '.pot', '.sxd', '.sda', '.sdd', '.vor', '.pdf']
@@ -113,7 +122,7 @@ class folder:
         """Devuelve el tamaño de la carpeta"""
         if self.path:
             try:
-                tam = os.popen('du -s ' + self.path.replace(' ','\ '))
+                tam = os.popen('du -s ' + self.path.replace(' ','\ ').replace('(','\(').replace(')','\)'))
                 return int(tam.read().split('\t')[0])
             except:
                 self.error('Size for %s not available' % self.path)
@@ -155,7 +164,7 @@ class folder:
             df.close()
             return int(disc_avail)
 
-    def copy(self, destino, extension = None, reorder = None, exclude = ['.lnk',], function = None, delta = 0):
+    def copy(self, destino, extension = None, convert = True, exclude = ['.lnk',], function = None, delta = 0):
         """Copia solo los archivos de la ruta origen que tienen la misma extension que la especificada en la lista de 'extensiones'"""
         if not isinstance(destino, folder):
             destino = folder(os.path.join(destino, self.get_name()))
@@ -167,22 +176,21 @@ class folder:
                     suborigen = folder(ruta)
                     subdestino = folder(os.path.join(destino.path, e))
                     if suborigen.path and subdestino.path:
-                        suborigen.copy(subdestino, extension, reorder, exclude, function, delta)
+                        suborigen.copy(subdestino, extension, convert, exclude, function, delta)
                 elif os.path.isfile(ruta):
                     # caso base
                     ext = os.path.splitext(e)[-1]
                     if (not exclude or (not ext in exclude)) and (not extension or (ext in extension)): # think about some file to exclude, like .ini o .lnk
                         try:
                             progress(">>> Copying %s..." % ruta)
-                            if reorder and (ext in audio):
-                                shutil.copy2(ruta, __DIR_MUSIC__)
-                            elif reorder and (ext in pictures):
-                                shutil.copy2(ruta, __DIR_PICTURES__)
-                            elif reorder and (ext in video):
-                                shutil.copy2(ruta, __DIR_VIDEO__)
-                            else:
-                                shutil.copy2(ruta, destino.path)
+                            shutil.copy2(ruta, destino.path)
                             os.chmod(os.path.join(destino.path, e), 0644)
+                            if convert and ext in self.document_files:
+                                odf_converter(os.path.join(destino.path, e), 'odt')
+                            elif convert and ext in self.presentation_files:
+                                odf_converter(os.path.join(destino.path, e), 'odp')
+                            elif convert and ext in self.spread_files:
+                                odf_converter(os.path.join(destino.path, e), 'ods')
                             if function and delta:
                                 #for progress bar update
                                 function(delta=delta)
@@ -286,6 +294,8 @@ class copier(application):
         self.option.copy(destino=self.destination, function=self.update_progress, delta=inc)
         if not self.option.errors:
             return 1
+        else:
+            print self.option.errors
 
 
 if __name__ == "__main__":

@@ -233,7 +233,7 @@ class winuser(regedit, generic_usr):
         folder_2_copy = []
         if self.os.find("Vista") > 1:
             for s in folder(self.path).get_subfolders():
-                add = s.get_size() and not s.get_name() in ('AppData', 'Links', 'Tracing', 'Searches', 'Cookies', 'NetHood', 'PrintHood', 'Local Settings', 'Application Data', 'Recent', 'Templates', 'SendTo', 'Start Menu', 'Saved Games')
+                add = s.get_size() and not s.get_name() in ('AppData', 'Links', 'Tracing', 'Searches', 'Cookies', 'NetHood', 'PrintHood', 'Local Settings', 'Application Data', 'Recent', 'Templates', 'SendTo', 'Start Menu', 'Saved Games', 'Favorites','Contacts')
                 if add:
                     folder_2_copy.append(s)
         else:
@@ -284,33 +284,29 @@ class winuser(regedit, generic_usr):
         lectores = []
         out = self.get_OUTLOOK_accounts()
         for k, v in out.iteritems():
-            for o in v:
-                try:
-                    if k == "Outlook12":
-                        lectores.append(mail.outlook12(self, o))
-                    elif k == "Outlook11":
-                        lectores.append(mail.outlook11(self, o))
-                    elif k == "Outlook Express":
-                        lectores.append(mail.outlook_express(self, o))
-                    elif k == "Outlook9":
-                        lectores.append(mail.outlook9(self, o))
-                except:
-                    pass
-        for k,v in self.get_WINDOWS_MAIL_accounts().iteritems():
             try:
-                lectores.append(mail.windowsmail(self, v))
+                if k == "Outlook12":
+                    lectores.append(mail.outlook12(self, v))
+                elif k == "Outlook11":
+                    lectores.append(mail.outlook11(self, v))
+                elif k == "Outlook Express":
+                    lectores.append(mail.outlook_express(self, v))
+                elif k == "Outlook9":
+                    lectores.append(mail.outlook9(self, v))
             except:
                 pass
-        for k,v in self.get_WINDOWS_LIVE_MAIL_accounts().iteritems():
-            try:
-                lectores.append(mail.windowslivemail(self, v))
-            except:
-                pass
-        for a in self.get_THUNDERBIRD_accounts():
-            try:
-                lectores.append(mail.winthunderbird(self, a))
-            except:
-                pass
+        try:
+            lectores.append(mail.windowsmail(self, self.get_WINDOWS_MAIL_accounts().values()))
+        except:
+            pass
+        try:
+            lectores.append(mail.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
+        except:
+            pass
+        try:
+            lectores.append(mail.winthunderbird(self, self.get_THUNDERBIRD_accounts()))
+        except:
+            pass
         if lectores:
             lec = self.tree_options.append(conf, [_("Gestores de correo"), None, None, _('Gestores de correo electrónico'), None] )
             for l in lectores:
@@ -343,6 +339,15 @@ class winuser(regedit, generic_usr):
             configuraciones.append(settings.avatar(self))
         except:
             pass
+        try:
+            configuraciones.append(settings.calendar(self))
+        except:
+            pass
+        try:
+            configuraciones.append(settings.contacts(self))
+        except:
+            pass
+
         if configuraciones:
             cfg = self.tree_options.append(conf, [_("Otros"), None, None, _('Otras opciones de configuración'), None] )
             for c in configuraciones:

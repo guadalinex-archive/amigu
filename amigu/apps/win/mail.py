@@ -27,7 +27,10 @@ class mailconfig:
             self.c = self.readconfig_wm(config)
         else:
             raise Exception
+        if not self.get_server():
+            raise Exception
         #print self.c
+        
 
     def get_type(self):
         """Devuelve el tipo de cuenta de correo"""
@@ -201,28 +204,39 @@ class mailreader(application):
     
     def initialize(self):
         self.name = _("Lector de correo")
-        self.description = _("Configuracion del lector de correo")
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
+        self.description = self.name +": %d"%len(self.mailconfigs)+ _("cuentas de correo")
         
     def get_configuration(self):
        pass
 
     def do(self):
         self.update_progress(5.0)
-        self.import_account()
-        self.update_progress(25.0)
-        self.import_mail()
-        self.update_progress(60.0)
-        self.import_contacts()
+        self.import_accounts()
+        self.import_mails()
         self.update_progress(80.0)
+        self.import_contacts()
+        self.update_progress(90.0)
         self.import_calendar()
         return 1
 
-    def import_mail(self):
+    def import_mails(self):
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
+        for mb in self.mailboxes:
+            self.convert_mailbox(mb)
+            self.update_progress(delta=30.0/len(self.mailconfigs))
+            
+    def convert_mailbox(self, mb):
         pass
 
-    def import_account(self):
-        self.config_EVOLUTION()
-        self.config_THUNDERBIRD()
+    def import_accounts(self):
+        for a in self.mailconfigs:
+            self.config_EVOLUTION(a)
+            self.config_THUNDERBIRD(a)
+            self.update_progress(delta=45.0/len(self.mailboxes))
         
     def import_calendar(self):
         self.config_EVOLUTION_calendar()
@@ -230,10 +244,10 @@ class mailreader(application):
     def import_contacts(self):
         self.config_EVOLUTION_addressbook()
 
-    def config_EVOLUTION(self):
+    def config_EVOLUTION(self, a):
         """Configura la cuenta dada en Evolution"""
         
-        a = self.mailconfig
+        #a = self.mailconfig
         ssl = a.use_SSL() and 'always' or 'never'
         smtpssl = a.use_SMTP_SSL() and 'always' or 'never'
         server_type = a.get_type()
@@ -278,7 +292,7 @@ class mailreader(application):
             "<pgp encrypt-to-self=\"false\" always-trust=\"false\" always-sign=\"false\" no-imip-sign=\"false\"/><smime sign-default=\"false\" encrypt-default=\"false\" encrypt-to-self=\"false\"/>" + \
             "</account>\n"
             # concatenate elemennt to the list
-            print e
+            #print e
             if laccounts == "[]\n":
                 #create list
                 laccounts = "[" + e +"]"
@@ -290,7 +304,7 @@ class mailreader(application):
                 os.system("gconftool --set /apps/evolution/mail/accounts --type list --list-type string \"" + laccounts.replace("\"", "\\\"") +"\"")
                 progress("Account %s added successfully" % a.get_account_name())
             except:
-                error ("Evolution configuration is not writable")
+                self.errors += "Evolution configuration is not writable"
     
     def config_EVOLUTION_calendar(self):
         vcal = os.path.join(self.dest.path, _("Calendario"))
@@ -350,10 +364,10 @@ class mailreader(application):
             db.close()
             os.remove(vcard)
     
-    def config_THUNDERBIRD(self):
+    def config_THUNDERBIRD(self, a):
         th = thunderbird()
         try:
-            th.config_account(self.mailconfig)
+            th.config_account(a)
         except:
             pass
 
@@ -361,186 +375,233 @@ class mailreader(application):
 class outlook12(mailreader):
     
     def initialize(self):
+        
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
+        
         self.name = _("Outlook 2007")
-        self.description = _("Configuración de MS Office Outlook 2007")
-        self.pst = os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', 'Outlook.pst')
-        self.mailconfig = self.get_configuration()
-        self.size = os.path.getsize(self.pst)/1024
-        self.description = _("MS Office Outlook 2007") + ": " + self.mailconfig.get_SMTP_email_address()
+        self.description = _("Datos y configuraciones de MS Office Outlook 2007")
+        pst = os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', 'Outlook.pst')
+        if os.path.exists(pst):
+            self.mailboxes.append(pst)
+        self.mailconfigs = self.get_configuration()
+        if not self.mailconfigs:
+            raise Exception
+
+        for mb in self.mailboxes:
+            self.size = os.path.getsize(mb)/1024
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
 
 
     def get_configuration(self):
-        r = self.user.search_key(self.option)
-        if not "Email" in r.keys():
-            raise Exception
-        pst = None
-        for k, v in r.iteritems():
-            if v.startswith('hex'):
-                r[k]=hex2str(v)
-            if k.find('pst') > 0:
-                pst = k
-            if k == 'IMAP Store EID':
-                pst = r[k]
-        if pst:
-            i = pst.find(':')
-            pst = pst.replace(pst[:i+1], self.user.mount_points[pst[i-1:i+1]])
-            pst = pst.replace('\\','/')
-            if os.path.exists(pst):
-                self.pst = pst
-        return mailconfig(r)
+        configs = []
+        for key in self.option:
+            r = self.user.search_key(key)
+            if not "Email" in r.keys():
+                continue
+            pst = None
+            for k, v in r.iteritems():
+                if v.startswith('hex'):
+                    r[k]=hex2str(v)
+                if k.find('pst') > 0:
+                    pst = k
+                if k == 'IMAP Store EID':
+                    pst = r[k]
+            if pst:
+                i = pst.find(':')
+                pst = self.user.check_path(pst)
+                pst = pst.replace('\\','/')
+                if os.path.exists(pst) and not pst in self.mailboxes:
+                    self.mailboxes.append(pst)
+            try:
+                c = mailconfig(r)
+            except:
+                continue
+            else:
+                configs.append(c)
+        return configs
 
-    def import_mail(self):
+    def convert_mailbox(self, mb):
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
-        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
-        try:
-            f = os.popen (com)
-            print f.read()
-            f.close()
-        except:
-            self.error = "Failed to convert mailboxes"
-        else:
-            pass
+        com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        os.system(com)
 
 
 
 class outlook11(mailreader):
     
     def initialize(self):
-        self.name = _("Outlook XP/2002/2003")
-        self.pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))[0]
-        self.mailconfig = self.get_configuration()
+
         self.size = 0
-        if os.path.exists(self.pst):
-            self.size = os.path.getsize(self.pst)/1024
-        self.description = _("MS Office Outlook XP/2002/2003") + ": " +self.mailconfig.get_SMTP_email_address()  
+        self.mailconfigs = []
+        self.mailboxes = []
+
+        self.name = _("Outlook XP-2002-2003")
+        pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))
+        if pst and os.path.exists(pst[0]):
+            self.mailboxes.append(pst[0])
+        self.mailconfigs = self.get_configuration()
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        if not self.mailconfigs:
+            raise Exception
+
+        for mb in self.mailboxes:
+            self.size = os.path.getsize(mb)/1024
 
     def get_configuration(self):
-        r = self.user.search_key(self.option)
-        if not "Email" in r.keys():
-            raise Exception
-        for k, v in r.iteritems():
-            if v.startswith('hex'):
-                r[k]=hex2str(v)
-        c = mailconfig(r)
-        try:
-            pst_file = "*Outlook*"+c.get_server()+'-'+self.option.split('\\')[-1][:-3]+'.pst'
-            pst_file = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', pst_file))[0]
-            if os.path.exists(pst_file):
-                self.pst = pst_file
-        except:
-            pass
-        return c
+        configs = []
+        for key in self.option:
+            r = self.user.search_key(key)
+            if not "Email" in r.keys():
+                continue
+            for k, v in r.iteritems():
+                if v.startswith('hex'):
+                    r[k]=hex2str(v)
+            
+            try:
+                pst_file = "*Outlook*"+c.get_server()+'-'+self.option.split('\\')[-1][:-3]+'.pst'
+                pst_file = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', pst_file))[0]
+                if os.path.exists(pst_file) and not pst_file in self.mailboxes:
+                    self.mailboxes.append(pst_file)
+            except:
+                pass
+            try:
+                c = mailconfig(r)
+            except:
+                continue
+            else:
+                configs.append(c)
+        return configs
 
-    def import_mail(self):
+    def convert_mailbox(self, mb):
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
-        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
-        try:
-            f = os.popen (com)
-            print f.read()
-            f.close()
-        except:
-            self.error = "Failed to convert mailboxes"
-        else:
-            pass
+        com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        os.system(com)
 
 
 class outlook9(mailreader):
     
     def initialize(self):
-        self.name = _("Outlook 2000")
-        self.description = _("Configuración de MS Office Outlook")
-        self.pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))[0]
-        self.mailconfig = self.get_configuration()
-        if os.path.exists(self.pst):
-            self.size = os.path.getsize(self.pst)/1024
-        else:
-            self.size = 0
-        self.description = _("MS Office Outlook 2000") + ": " + self.mailconfig.get_SMTP_email_address()
 
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
+
+        self.name = _("Outlook 2000")
+        self.description = _("Datos y configuraciones de MS Office Outlook 2000")
+        pst = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Microsoft','Outlook', '?utlook.pst'))
+
+        if pst and os.path.exists(pst[0]):
+            self.mailboxes.append(pst[0])
+        self.mailconfigs = self.get_configuration()
+        for mb in self.mailboxes:
+            self.size = os.path.getsize(mb)/1024
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        if not self.mailconfigs:
+            raise Exception
 
     def get_configuration(self):
-        r = self.user.search_key(self.option)
-        for k, v in r.iteritems():
-            if k.find('pst') > 0:
-                pst = k.replace(k[:2], self.user.mount_points[k[:2]])
-                if os.path.exists(pst):
-                    self.pst = pst
-        return mailconfig(r)
+        configs = []
+        for key in self.option:
+            r = self.user.search_key(key)
+            for k, v in r.iteritems():
+                if k.find('pst') > 0:
+                    pst = self.user.check_path(k)
+                    if os.path.exists(pst) and not pst in self.mailboxes:
+                        self.mailboxes.append(pst)
+            try:
+                c = mailconfig(r)
+            except:
+                continue
+            else:
+                configs.append(c)
+        return configs
 
-    def import_mail(self):
+    def convert_mailbox(self, mb):
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Outlook")+'.sbd'))
-        com = '%s -w %s -o %s' % (readpst, self.pst.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
-        try:
-            f = os.popen (com)
-            print f.read()
-            f.close()
-        except:
-            self.error = "Failed to convert mailboxes"
-        else:
-            pass
+        com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
+        os.system(com)
 
         
-
-
 class outlook_express(mailreader):
     
     def initialize(self):
-        self.name = _("Outlook Express")
-        self.description = _("Configuración de Outlook Express")
-        #self.pst = self.get_configuration()
-        self.mailconfig = mailconfig(self.get_configuration())
-        self.size = self.dbx_dir.get_size()
-        self.description = _("MS Outlook Express") + ": " + self.mailconfig.get_SMTP_email_address()
+        
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
 
+        self.name = _("Outlook Express")
+        self.mailconfigs = self.get_configuration()
+        for mb in self.mailboxes:
+            self.size += mb.get_size()
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        if not self.mailconfigs:
+            raise Exception
 
     def get_configuration(self):
-        r = self.user.search_key(self.option)
-        self.dbx_dir = folder(glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Identities','{*}','Microsoft','Outlook Express'))[0])
-        return r
+        configs = []
+        for key in self.option:
+            r = self.user.search_key(key)
+            
+            mb = glob.glob(os.path.join(self.user.folders["Local AppData"].path, 'Identities','{*}','Microsoft','Outlook Express'))
+            if mb:
+                self.mailboxes.append(folder(mb[0]))
+            try:
+                c = mailconfig(r)
+            except:
+                continue
+            else:
+                configs.append(c)
+        return configs
 
-    def import_mail(self):
-        """Convierte el archivo .dbx que se le pasa y lo integra en Evolution"""
+    def convert_mailbox(self, mb):
         readdbx = os.path.join(__DIR_DBX2MBX__,'readoe')
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Outlook Express")+'.sbd'))
-        com = '%s -i %s -o %s' % (readdbx, self.dbx_dir.path.replace(' ',"\ "),self.dest.path.replace(' ',"\ "))
-        try:
-            os.system (com)
-        except:
-            self.error = "Failed to convert mailboxes"
-
-
+        com = '%s -i %s -o %s' % (readdbx, mb.path.replace(' ',"\ "),self.dest.path.replace(' ',"\ "))
+        os.system(com)
 
     def import_contacts(self):
+        pass
+        
+    def import_calendar(self):
         pass
         
 
 class windowsmail(mailreader):
     
     def initialize(self):
+
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
         self.name = _("Windows Mail")
-        self.description = _("Configuracion de Windows Mail")
-        self.mb_dir = None
-        self.mailconfig = self.get_configuration()
-        self.size = self.mb_dir.get_size()
-        self.description = _("Windows Mail") + ": " + self.mailconfig.get_SMTP_email_address()
+      
+        self.mailconfigs = self.get_configuration()
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        for mb in self.mailboxes:
+            self.size += mb.get_size()
+        if not self.mailconfigs:
+            raise Exception
 
 
     def get_configuration(self):
-        self.mb_dir = folder(os.path.join(os.path.split(self.option)[0], 'Inbox'))
-        return mailconfig(self.option)
+        configs = []
+        for key in self.option:
+            try:
+                c = mailconfig(key)
+            except:
+                continue
+            else:
+                configs.append(c)
+            mb = folder(os.path.join(os.path.dirname(key), 'Inbox'), False)
+            if mb.path:
+                print mb.path
+                self.mailboxes.append(mb)
+        return configs
 
-    def import_mail(self):
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Windows Mail")+'.sbd'))
-        #eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, 'Inbox'))
-        eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, self.mailconfig.get_SMTP_email_address()))
-        if self.mailconfig.get_type() == 'imap':
-            pass
-        elif self.mailconfig.get_type() == 'pop3':
-            pass
-
+    def convert_mailbox(self, mb):
+        eml2mbox(mb.path, os.path.join(self.dest.path, mb.path.split('/')[-2]))
         
     def import_calendar(self):
         pass
@@ -551,26 +612,32 @@ class windowsmail(mailreader):
 class windowslivemail(windowsmail):
     
     def initialize(self):
-        self.name = _("Windows Live Mail")
-        self.description = _("Configuración de Windows Mail")
-        self.mb_dir = None
-        self.mailconfig = self.get_configuration()
-        self.size = self.mb_dir.get_size()
-        self.description =_("Windows Live Mail") + ": " + self.mailconfig.get_SMTP_email_address()
-                
-    def import_mail(self):
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local',_("Correo de Windows Live Mail")+'.sbd'))
-        eml2mbox(self.mb_dir.path, os.path.join(self.dest.path, self.mailconfig.get_SMTP_email_address()))
 
+        self.size = 0
+        self.mailconfigs = []
+        self.mailboxes = []
+
+        self.name = _("Windows Live Mail")
+        self.mailconfigs = self.get_configuration()
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        for mb in self.mailboxes:
+            self.size += mb.get_size()
+        if not self.mailconfigs:
+            raise Exception
 
 class winthunderbird(mailreader):
     
     def initialize(self):
         self.name = _("Mozilla Thunderbird")
-        self.mb_dir = None
-        self.mailconfig = self.get_configuration()
-        self.size = self.mb_dir.get_size()
-        self.description =_("Mozilla Thunderbird") + ": " + self.mailconfig.get_SMTP_email_address()
+        self.mailboxes = []
+        self.size = 0
+        self.mailconfigs = self.get_configuration()
+        self.description = self.name +": %d "%len(self.mailconfigs)+ _("cuentas de correo")
+        for mb in self.mailboxes:
+            self.size += mb.get_size()
+        
+        if not self.mailconfigs:
+            raise Exception
 
     def get_configuration(self):
         prefs = self.user.get_THUNDERBIRD_prefs()
@@ -579,39 +646,41 @@ class winthunderbird(mailreader):
         p.close()
         id = 0
         c = {}
-        
-        pid = re.compile('.*'+self.option+'\.identities\".+\"(?P<id>\w+)\".+')
-        pserver = re.compile('.*'+self.option+'\.server\".+\"(?P<server>\w+)\".+')
-        
-        for l in content:
-            m = pid.match(l)
-            if m:
-                id = m.group('id')
-                psmtp = re.compile('.*'+id+'\.smtpServer\".+\"(?P<smtp>\w+)\".+')
-            else:
-                m = pserver.match(l)
+        configs = []
+        for ac in self.option:
+            pid = re.compile('.*'+self.option+'\.identities\".+\"(?P<id>\w+)\".+')
+            pserver = re.compile('.*'+self.option+'\.server\".+\"(?P<server>\w+)\".+')
+            
+            for l in content:
+                m = pid.match(l)
                 if m:
-                    server = m.group('server')
-                elif id:
-                    m = psmtp.match(l)
+                    id = m.group('id')
+                    psmtp = re.compile('.*'+id+'\.smtpServer\".+\"(?P<smtp>\w+)\".+')
+                else:
+                    m = pserver.match(l)
                     if m:
-                        smtp = m.group('smtp')
-        pid = re.compile('.*mail\.identity\.'+id+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\d+)\).+')
-        pserver = re.compile('.*mail\.server\.'+server+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
-        psmtp = re.compile('.*mail\.smtpserver\.'+smtp+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
-        for l in content:
-            m = pid.match(l)
-            if m:
-                c[m.group('key')]=m.group('value').replace('\"','')
-            else:
-                m = pserver.match(l)
+                        server = m.group('server')
+                    elif id:
+                        m = psmtp.match(l)
+                        if m:
+                            smtp = m.group('smtp')
+            pid = re.compile('.*mail\.identity\.'+id+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\d+)\).+')
+            pserver = re.compile('.*mail\.server\.'+server+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
+            psmtp = re.compile('.*mail\.smtpserver\.'+smtp+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
+            for l in content:
+                m = pid.match(l)
                 if m:
                     c[m.group('key')]=m.group('value').replace('\"','')
                 else:
-                    m = psmtp.match(l)
+                    m = pserver.match(l)
                     if m:
-                        c['smtp'+m.group('key')]=m.group('value').replace('\"','')
-        return mailconfig(self.check_config(c))
+                        c[m.group('key')]=m.group('value').replace('\"','')
+                    else:
+                        m = psmtp.match(l)
+                        if m:
+                            c['smtp'+m.group('key')]=m.group('value').replace('\"','')
+            configs.append(mailconfig(self.check_config(c)))
+        return configs
         
     def check_config(self, c):
 
@@ -636,11 +705,11 @@ class winthunderbird(mailreader):
         
         #print c
         #print c['directory-rel'].replace("[ProfD]",os.path.dirname(self.user.get_THUNDERBIRD_prefs())+'/')
-        self.mb_dir = folder(c['directory-rel'].replace("[ProfD]",os.path.dirname(self.user.get_THUNDERBIRD_prefs())+'/'))
+        self.mailboxes.append(folder(c['directory-rel'].replace("[ProfD]",os.path.dirname(self.user.get_THUNDERBIRD_prefs())+'/')))
         return c
         
-    def import_mail(self):
-        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de Thunderbird")+'.sbd'))
+    def import_mails(self):
+        self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
         self.mb_dir.copy(self.dest.path, exclude=['.dat','.msf'])
         
 
@@ -668,6 +737,7 @@ def eml2mbox(emlpath, mbxpath):
     i = 0
     pattern = re.compile('(?P<date>Date:)\s+(?P<day>\w{3})\s+(?P<number>\d{1,2})\s+(?P<month>\w{3})\s+(?P<year>\d{4})\s+(?P<hour>[\d:]{5,8}).+')
     try:
+        print mbxpath
         d = open(mbxpath, 'w')
     except: 
         return 0

@@ -2,10 +2,11 @@
 # Funciones asociadas a configuraciones del usuario.
 # Permite configurar el fondo de escritorio e instalar nuevas fuentes true-type.
 
-import os, re, shutil
+import os, re, shutil, glob, random
 from amigu.util.folder import *
 from amigu.apps.base import application
 from amigu import _
+from xml.dom import minidom
 
 class emule(application):
     
@@ -124,8 +125,13 @@ class wallpaper(application):
         self.name = _('Fondo de escritorio')
         self.description = _('Imagen de fondo de escritorio')
         w = self.user.search_key("Control Panel\\Desktop")
-        self.image = self.user.check_path(w['WallPaper'])
-        print self.image
+        if 'WallPaper' in w.keys():
+            self.image = self.user.check_path(w['WallPaper'])
+        elif 'Wallpaper' in w.keys():
+            self.image = self.user.check_path(w['Wallpaper'])
+        else:
+            raise Exception
+        
         if not os.path.exists(self.image):
             #bug in Windows XP
             self.image = self.image.replace('/w','/W')
@@ -188,3 +194,133 @@ class fonts_installer(application):
             return 1
 
 
+class calendar(application):
+    
+
+    def initialize(self):
+        self.name = _('Calendario de Windows')
+        self.description = _('Calendario de Windows')
+        self.size = 0
+        self.icals = glob.glob(os.path.join(self.user.folders['Local AppData'].path, 'Microsoft', 'Windows Calendar', 'Calendars','*.ics'))
+        if not self.icals:
+            raise Exception
+        for cal in self.icals:
+            self.size += os.path.getsize(cal)
+
+    def do(self):
+        old = None
+        evo_cal = os.path.join(os.path.expanduser('~'),'.evolution','calendar','local','system','calendar.ics')
+        folder(os.path.dirname(evo_cal))
+        if os.path.exists(evo_cal):
+            old = backup(evo_cal)
+            if old:
+                new_cal = open(evo_cal, "w")
+                old_cal = open(old, 'r')
+                for l in old_cal.readlines():
+                    if l.find('END:VCALENDAR') == -1:
+                        new_cal.write(l)
+                old_cal.close()
+        if not old:
+            new_cal = open(evo_cal, "w")
+            new_cal.write('BEGIN:VCALENDAR\n')
+            new_cal.write('CALSCALE:GREGORIAN\n')
+            new_cal.write('VERSION:2.0\n')
+        for ical in self.icals:
+            orig = open(ical,"r")
+            events = False
+            for l in orig.readlines():
+                if l.find('BEGIN:VEVENT') != -1:
+                    events = True
+                if events and l.find('END:VCALENDAR') < 0:
+                    new_cal.write(l)
+            orig.close()
+        new_cal.write('END:VCALENDAR\n')
+        return 1
+
+class contacts(application):
+    
+
+    def initialize(self):
+        self.name = _('Contactos de Windows')
+        self.description = _('Contactos de Windows')
+        self.size = 0
+        self.cs = glob.glob(os.path.join(self.user.path, 'Contacts','*.contact'))
+        if not self.cs:
+            raise Exception
+        for c in self.cs:
+            self.size += os.path.getsize(c)
+
+    def do(self):
+        import bsddb
+        adb=os.path.join(os.path.expanduser('~'),'.evolution','addressbook','local','system','addressbook.db')
+        folder(os.path.dirname(adb))
+        db = bsddb.hashopen(adb,'w')
+        for file in self.cs:
+            c = contact(file)
+            vcard = c.tovcard()
+            if vcard:
+                randomid = 'pas-id-' + str(random.random())[2:]
+                vcard.insert(2, randomid)
+                db[randomid+'\x00'] = ''
+                for l in vcard:
+                    db[randomid+'\x00'] += l + '\r\n'
+                db[randomid+'\x00'] += '\x00'
+        db.sync()
+        db.close()
+        return 1
+
+
+class contact:
+    
+    def __init__(self, file):
+        self.xmldoc = minidom.parse(file)
+        
+    def get(self, name, node = None):
+        s = ''
+        if node:
+            elems = node.getElementsByTagName('c:'+name)
+        else:
+            elems = self.xmldoc.getElementsByTagName('c:'+name)
+        for e in elems:
+            if e.hasChildNodes() and e.firstChild.nodeType == e.TEXT_NODE:
+                 s = e.firstChild.data
+        return s
+            
+    def getCollection(self, name, node = None):
+        s = ''
+        if node:
+            elems = node.getElementsByTagName('c:'+name)
+        else:
+            elems = self.xmldoc.getElementsByTagName('c:'+name)
+        for e in elems:
+            yield e
+            
+    def getLabels(self, node):
+        s = ''
+        elems = node.getElementsByTagName('c:Label')
+        for e in elems:
+            yield e.firstChild.data
+
+    def tovcard(self):
+        vcard = ["BEGIN:VCARD", "VERSION:3.0"]
+        vcard.append("FN:%s" % self.get("FormattedName"))
+        vcard.append("N:%s,%s,%s,%s" % (self.get("GivenName"),self.get("MiddleName"),self.get("FamilyName"),self.get("NickName")))
+        vcard.append("TITLE:%s" % self.get("Title"))
+        for ad in self.getCollection("EmailAddress"):
+            vcard.append("EMAIL;TYPE=INTERNET:%s" % self.get('Address', ad))
+        for pn in self.getCollection("PhoneNumber"):
+            labels = ""
+            for lb in self.getLabels(pn):
+                labels += lb.upper()+','
+            vcard.append("TEL;TYPE=%s:%s" % (labels[:-1], self.get('Number', pn)))
+        for pa in self.getCollection("PhysicalAddress"):
+            labels = ""
+            for lb in self.getLabels(pa):
+                labels += lb.upper()+','
+            vcard.append("ADR;TYPE=%s:%s;%s;%s;%s;%s;%s;%s" % (labels[:-1], '','',self.get('Street', pa), self.get('Locality', pa), self.get('Region', pa), self.get('PostalCode', pa), self.get('Country', pa)))
+        vcard.append("END:VCARD")
+        return vcard
+
+if __name__ == "__main__":
+    pass
+    
