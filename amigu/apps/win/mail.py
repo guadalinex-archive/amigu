@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import os, re, random, time
+import os, re, random, time, shutil
 import commands
 import glob
 from amigu import _
@@ -345,6 +345,8 @@ class mailreader(application):
             adb=os.path.join(os.path.expanduser('~'),'.evolution','addressbook','local','system','addressbook.db')
             folder(os.path.dirname(adb))
             db = bsddb.hashopen(adb,'w')
+            if not 'PAS-DB-VERSION\x00' in db.keys():
+                db['PAS-DB-VERSION\x00'] = '0.2\x00'
             contacts = open(vcard, 'r')
             while 1:
                 l = contacts.readline()
@@ -359,7 +361,7 @@ class mailreader(application):
                             db[randomid+'\x00'] += 'END:VCARD\x00'
                             break
                         else:
-                            db[randomid+'\x00'] += v.replace('\n', '\r\n')
+                            db[randomid+'\x00'] += v.replace('PERSONAL','HOME').replace('\n', '\r\n')
             db.sync()
             db.close()
             os.remove(vcard)
@@ -558,8 +560,12 @@ class outlook_express(mailreader):
 
     def convert_mailbox(self, mb):
         readdbx = os.path.join(__DIR_DBX2MBX__,'readoe')
-        com = '%s -i %s -o %s' % (readdbx, mb.path.replace(' ',"\ "),self.dest.path.replace(' ',"\ "))
+        output = self.dest.path
+        com = '%s -i %s -o %s' % (readdbx, mb.path.replace(' ',"\ "), output.replace(' ','\ '))
         os.system(com)
+        for e in os.listdir(output):
+            if os.path.splitext(e)[-1] == '.dbx':
+                shutil.move(os.path.join(output, e), os.path.join(output, e).replace('.dbx',''))
 
     def import_contacts(self):
         pass
