@@ -270,6 +270,8 @@ class mailreader(application):
             l.close()
             if not laccounts:
                 laccounts = "[]\n"
+            elif laccounts.find(a.get_SMTP_email_address()) > 0:
+                return 1
         except:
             error ("Evolution configuration is not readable")
         else:
@@ -602,7 +604,6 @@ class windowsmail(mailreader):
                 configs.append(c)
             mb = folder(os.path.join(os.path.dirname(key), 'Inbox'), False)
             if mb.path:
-                print mb.path
                 self.mailboxes.append(mb)
         return configs
 
@@ -743,7 +744,6 @@ def eml2mbox(emlpath, mbxpath):
     i = 0
     pattern = re.compile('(?P<date>Date:)\s+(?P<day>\w{3})\s+(?P<number>\d{1,2})\s+(?P<month>\w{3})\s+(?P<year>\d{4})\s+(?P<hour>[\d:]{5,8}).+')
     try:
-        print mbxpath
         d = open(mbxpath, 'w')
     except: 
         return 0

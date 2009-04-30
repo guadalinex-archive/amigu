@@ -248,7 +248,7 @@ class contacts(application):
         if not self.cs:
             raise Exception
         for c in self.cs:
-            self.size += os.path.getsize(c)
+            self.size += os.path.getsize(c)/1024
 
     def do(self):
         import bsddb
@@ -306,7 +306,7 @@ class contact:
     def tovcard(self):
         vcard = ["BEGIN:VCARD", "VERSION:3.0"]
         vcard.append("FN:%s" % self.get("FormattedName"))
-        vcard.append("N:%s;%s;%s;%s;%s" % (self.get("FamilyName"),self.get("GivenName"),self.get("MiddleName"),self.get("Prefix"),self.get("Suffic")))
+        vcard.append("N:%s;%s;%s;%s;%s" % (self.get("FamilyName"),self.get("GivenName"),self.get("MiddleName"),self.get("Prefix"),self.get("Suffix")))
         vcard.append("NICKNAME:%s" % self.get("NickName"))
         vcard.append("TITLE:%s" % self.get("Title"))
         for ad in self.getCollection("EmailAddress"):
@@ -327,6 +327,15 @@ class contact:
                     lb = "Home"
                 labels += lb.upper()+','
             vcard.append("ADR;TYPE=%s:%s;%s;%s;%s;%s;%s;%s" % (labels[:-1], self.get('POBox'), self.get('ExtendedAddress'),self.get('Street', pa), self.get('Locality', pa), self.get('Region', pa), self.get('PostalCode', pa), self.get('Country', pa)))
+        for dt in self.getCollection("Date"):
+            type, date = None, self.get('Value', dt)
+            for lb in self.getLabels(dt):
+                if lb == 'wab:Birthday':
+                    type = "BDAY"
+                elif lb == 'wab:Anniversary':
+                    type = "X-EVOLUTION-ANNIVERSARY"
+            if type and date:
+                vcard.append("%s:%s" % (type, date))
         vcard.append("END:VCARD")
         return vcard
 
