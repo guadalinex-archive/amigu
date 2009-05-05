@@ -309,11 +309,15 @@ class opera(webbrowser):
         hotlist = marks.read().split('#')
         marks.close()
         for h in hotlist:
+            valid = True
             e = h.split('\r\n')
             if e[0]=="FOLDER":
-                if e[3].find("TRASH") > 0:
-                    continue
-                links.append([e[0],e[2].replace('\t','')[5:], None])
+                for d in e:
+                    if d.find("TRASH") >= 0:
+                        valid = False
+                        break
+                if valid:
+                    links.append([e[0],e[2].replace('\t','')[5:], None])
             elif e[0]=="URL":
                 name=e[2].replace('\t','')[5:]
                 url=e[3].replace('\t','')[4:]

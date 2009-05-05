@@ -3,6 +3,7 @@ import uuid
 import sys
 import traceback
 import gtk
+from amigu import _
 
 class application:
 
@@ -26,6 +27,7 @@ class application:
         self.error = ''
 
     def initialize(self):
+        print _("Desktop")
         pass
 
     def run(self, model=None, iter=None):

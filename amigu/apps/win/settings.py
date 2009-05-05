@@ -142,11 +142,15 @@ class wallpaper(application):
         filename = os.path.basename(self.image)
         wp = os.path.join(dest, filename)
         self.update_progress(50.0)
-        if not os.path.exists(wp):
-            try:
-                shutil.copy2(self.image, dest)
-            except:
-                return 0
+        i = 1
+        file, ext = os.path.splitext(wp)
+        while os.path.exists(wp):
+            wp = "%s(%d)%s" % (file, i , ext)
+            i += 1
+        try:
+            shutil.copy2(self.image, dest)
+        except:
+            return 0
         if os.path.exists('/usr/bin/gconftool'): # for GNOME
             os.system("gconftool --type string --set /desktop/gnome/background/picture_filename %s" % wp.replace(' ','\ '))
             self.update_progress(delta=20.0)

@@ -311,6 +311,7 @@ class mailreader(application):
     def config_EVOLUTION_calendar(self):
         vcal = os.path.join(self.dest.path, _("Calendario"))
         old = None
+        dates = []
         if os.path.exists(vcal):
             evo_cal = os.path.join(os.path.expanduser('~'),'.evolution','calendar','local','system','calendar.ics')
             folder(os.path.dirname(evo_cal))
@@ -322,6 +323,8 @@ class mailreader(application):
                     for l in old_cal.readlines():
                         if l.find('END:VCALENDAR') == -1:
                             new_cal.write(l)
+                        if l.find('DTSTART') != -1:
+                            dates.append(l.replace('DTSTART:', ''))
                     old_cal.close()
             orig = open(vcal,"r")
             events = False
@@ -330,11 +333,21 @@ class mailreader(application):
                 new_cal.write('BEGIN:VCALENDAR\n')
                 new_cal.write('CALSCALE:GREGORIAN\n')
                 new_cal.write('VERSION:2.0\n')
+            buffer = ''
             for l in orig.readlines():
+                buffer += l
                 if l.find('BEGIN:VEVENT') != -1:
-                    events = True
-                if events:
-                    new_cal.write(l)
+                    buffer = l
+                    repeated = False
+                elif l.find('END:VEVENT') != -1:
+                    if not repeated:
+                        new_cal.write(buffer)
+                elif l.find('DTSTART') != -1:
+                    repeated = l.replace('DTSTART:', '') in dates
+                elif l.find('SUMMARY') != -1:
+                    #repeated = l.replace('SUMMARY:', '') in dates
+                    pass
+                
             new_cal.write('END:VCALENDAR\n')
             orig.close()
             os.remove(vcal)
@@ -602,13 +615,13 @@ class windowsmail(mailreader):
                 continue
             else:
                 configs.append(c)
-            mb = folder(os.path.join(os.path.dirname(key), 'Inbox'), False)
+            mb = folder(os.path.dirname(key), False)
             if mb.path:
                 self.mailboxes.append(mb)
         return configs
 
     def convert_mailbox(self, mb):
-        eml2mbox(mb.path, os.path.join(self.dest.path, mb.path.split('/')[-2]))
+        eml2mbox(mb.path, os.path.join(self.dest.path, mb.path.split('/')[-1]))
         
     def import_calendar(self):
         pass
@@ -748,7 +761,10 @@ def eml2mbox(emlpath, mbxpath):
     except: 
         return 0
     for e in os.listdir(emlpath):
-        if os.path.splitext(e)[-1] == '.eml':
+        if os.path.isdir(os.path.join(emlpath, e)):
+            new = folder(mbxpath+'.sbd')
+            eml2mbox(os.path.join(emlpath, e), os.path.join(new.path, e))
+        elif os.path.splitext(e)[-1] == '.eml':
             try:
                 m = open(os.path.join(emlpath, e),'r')
                 content = m.readlines()

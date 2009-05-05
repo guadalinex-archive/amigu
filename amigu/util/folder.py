@@ -4,14 +4,14 @@
 # Permite le uso de objetos de tipo 'folder' para simplificar y agilizar
 # el manejo de las carpetas
 
-import os, re, shutil, gettext
+import os, re, shutil
+from os.path import isdir, isfile, exists, split, basename, dirname, splitext, join
 from amigu.apps.base import application
 from amigu import _
 
-
 def backup(file):
     """Crea una copia de respaldo del archivo que se le indica"""
-    if os.path.exists(file):
+    if exists(file):
         try:
             progress('Doing backup of ' + file)
             shutil.copy2(file, file + '.bak')
@@ -22,7 +22,7 @@ def backup(file):
 
 def restore_backup(backup):
     """Restaura la copia de respaldo del archivo que se le indica"""
-    if os.path.exists(backup):
+    if exists(backup):
         try:
             progress('Restoring backup of ' + backup[:-4])
             shutil.copy2(backup, backup[:-4])
@@ -60,6 +60,14 @@ class folder:
     #
     # extensiones
     #
+    prefolders =   {"Desktop": _("Desktop"), 
+                    "Documents": _("Documents"),
+                    "Videos": _("Videos"),
+                    "Music": _("Music"),
+                    "Pictures": _("Pictures"),
+                    "Downloads": _("Downloads")
+                }
+    
     document_files = ['.sxv', '.doc', '.xml', '.rtf', '.sdw']
     presentation_files = ['.pot', '.ppt']
     spread_files = ['.xls', '.xlt', '.sxc']
@@ -78,9 +86,9 @@ class folder:
         Recibe una ruta y si no existe la crea"""
         self.errors = []
         self.path = None
-        if os.path.exists(path) and os.path.isdir(path):
+        if exists(path) and isdir(path):
             self.path = path
-        elif not os.path.exists(path) and create:
+        elif not exists(path) and create:
             self.path = self.create_folder(path)
         self.files = None
         self.dirs = None
@@ -89,7 +97,10 @@ class folder:
             #self.path = path
 
     def get_name(self):
-        return os.path.split(self.path)[-1]
+        name = basename(self.path)
+        if name in self.prefolders:
+            name = self.prefolders[name]
+        return name
 
     def error(self, e):
         """Almacena los errores en tiempo de ejecución"""
@@ -144,10 +155,10 @@ class folder:
         """Devuelve el número de archivos y carpetas de forma recursiva"""
         try:
             for e in os.listdir(path):
-                if os.path.isdir(os.path.join(path, e)):
-                    dirs, files = self.count(os.path.join(path, e), dirs, files)
+                if isdir(join(path, e)):
+                    dirs, files = self.count(join(path, e), dirs, files)
                     dirs = dirs + 1
-                elif os.path.isfile(os.path.join(path, e)):
+                elif isfile(join(path, e)):
                     files = files + 1
         except: pass
         return dirs, files
@@ -167,30 +178,30 @@ class folder:
     def copy(self, destino, extension = None, convert = True, exclude = ['.lnk',], function = None, delta = 0):
         """Copia solo los archivos de la ruta origen que tienen la misma extension que la especificada en la lista de 'extensiones'"""
         if not isinstance(destino, folder):
-            destino = folder(os.path.join(destino, self.get_name()))
+            destino = folder(join(destino, self.get_name()))
         for e in os.listdir(self.path):
-            ruta = os.path.join(self.path, e)
+            ruta = join(self.path, e)
             try:
-                if os.path.isdir(ruta):
+                if isdir(ruta):
                     # caso recursivo
                     suborigen = folder(ruta)
-                    subdestino = folder(os.path.join(destino.path, e))
+                    subdestino = folder(join(destino.path, e))
                     if suborigen.path and subdestino.path:
                         suborigen.copy(subdestino, extension, convert, exclude, function, delta)
-                elif os.path.isfile(ruta):
+                elif isfile(ruta):
                     # caso base
-                    ext = os.path.splitext(e)[-1]
+                    ext = splitext(e)[-1]
                     if (not exclude or (not ext in exclude)) and (not extension or (ext in extension)): # think about some file to exclude, like .ini o .lnk
                         try:
                             progress(">>> Copying %s..." % ruta)
                             shutil.copy2(ruta, destino.path)
-                            os.chmod(os.path.join(destino.path, e), 0644)
+                            os.chmod(join(destino.path, e), 0644)
                             if convert and ext in self.document_files:
-                                odf_converter(os.path.join(destino.path, e), 'odt')
+                                odf_converter(join(destino.path, e), 'odt')
                             elif convert and ext in self.presentation_files:
-                                odf_converter(os.path.join(destino.path, e), 'odp')
+                                odf_converter(join(destino.path, e), 'odp')
                             elif convert and ext in self.spread_files:
-                                odf_converter(os.path.join(destino.path, e), 'ods')
+                                odf_converter(join(destino.path, e), 'ods')
                             if function and delta:
                                 #for progress bar update
                                 function(delta=delta)
@@ -204,9 +215,9 @@ class folder:
 
     def get_subfolders(self):
         for e in os.listdir(self.path):
-            ruta = os.path.join(self.path, e)
+            ruta = join(self.path, e)
             try:
-                if os.path.isdir(ruta):
+                if isdir(ruta):
                     yield folder(ruta)
             except:
                 pass
@@ -215,16 +226,16 @@ class folder:
         """Devuelve una lista de archivos que cumplen con la extension dada"""
         found = []
         for e in os.listdir(self.path):
-            ruta = os.path.join(self.path, e)
+            ruta = join(self.path, e)
             try:
-                if os.path.isdir(ruta):
+                if isdir(ruta):
                     # caso recursivo
                     suborigen = folder(ruta)
                     if suborigen:
                         found += suborigen.search_by_ext(extension)
-                elif os.path.isfile(ruta):
+                elif isfile(ruta):
                     # caso base
-                    ext = os.path.splitext(e)[1]
+                    ext = splitext(e)[1]
                     if (ext == extension ) :
                         #print ruta
                         found.append(ruta)
@@ -248,29 +259,29 @@ class folder:
             elif re.search('Errno 13',str(e)): # permission denied
                 self.error ('Permiso denegado para escribir en ' + path)
             else: # invalid path
-                self.error ('Ruta no valida: ' + os.path.join(path, folder))
+                self.error ('Ruta no valida: ' + join(path, folder))
 
     def create_subfolder(self, subfolder):
         """Crea una subcarpeta en la ruta del objeto"""
         try:
-            os.makedirs(os.path.join(self.path, subfolder.replace(' ','\ ')))
-            return os.path.join(self.path, subfolder)
+            os.makedirs(join(self.path, subfolder.replace(' ','\ ')))
+            return join(self.path, subfolder)
         except OSError, e:
             if re.search('Errno 17',str(e)): # if already exists
-                return os.path.join(self.path, subfolder)
+                return join(self.path, subfolder)
             elif re.search('Errno 30',str(e)): # only read path
                 self.error('No se puede escribir en ' + self.path)
             elif re.search('Errno 13',str(e)): # permission denied
                 self.error ('Permiso denegado para escribir en ' + self.path)
             else: # invalid path
-                self.error ('Ruta no valida: ' + os.path.join(self.path, subfolder))
-
+                self.error ('Ruta no valida: ' + join(self.path, subfolder))
 
 
 
 class copier(application):
-
+    
     def initialize(self):
+
         self.name = _(self.option.get_name())
         self.size = self.option.get_size()
         self.files = self.option.count_files()
@@ -283,7 +294,7 @@ class copier(application):
     def set_destination(self, dest):
         if type(dest) == folder:
             self.destination = dest.path
-        elif os.path.exists(dest) and os.path.isdir(dest):
+        elif exists(dest) and isdir(dest):
             self.destination = dest
 
     def do(self):

@@ -75,19 +75,19 @@ class Asistente:
         self.users = gtk.TreeView(self.list_users)
         self.users.set_rules_hint(True)
         self.users.connect("cursor-changed", self.marcar_usuario)
-        self.renderer = gtk.CellRendererText()
-        self.renderer2 = gtk.CellRendererText()
-        self.renderer3 = gtk.CellRendererText()
-        self.renderer_pixbuf = gtk.CellRendererPixbuf()
-        self.renderer_pixbuf.set_property("stock-size",3)
-        self.renderer_pixbuf.set_property('xalign', 0.5)
-        self.renderer_pixbuf.set_property('width', 100)
-        self.renderer_pixbuf.set_property('ypad', 5)
-        column1 = gtk.TreeViewColumn(_("Cuenta"), self.renderer3, text=1)
-        self.renderer3.set_property('scale', 1.5)
-        self.renderer3.set_property('width', 300)
-        column2 = gtk.TreeViewColumn(_("Sistema Operativo"), self.renderer, text=2)
-        column3 = gtk.TreeViewColumn(_("Imagen"), self.renderer_pixbuf, pixbuf=0)
+        rndr = gtk.CellRendererText()
+        rndr2 = gtk.CellRendererText()
+        rndr3 = gtk.CellRendererText()
+        rndr_pixbuf = gtk.CellRendererPixbuf()
+        rndr_pixbuf.set_property("stock-size",3)
+        rndr_pixbuf.set_property('xalign', 0.5)
+        rndr_pixbuf.set_property('width', 100)
+        rndr_pixbuf.set_property('ypad', 5)
+        column1 = gtk.TreeViewColumn(_("Cuenta"), rndr3, text=1)
+        rndr3.set_property('scale', 1.5)
+        rndr3.set_property('width', 300)
+        column2 = gtk.TreeViewColumn(_("Sistema Operativo"), rndr, text=2)
+        column3 = gtk.TreeViewColumn(_("Imagen"), rndr_pixbuf, pixbuf=0)
         self.users.append_column( column3 )
         self.users.append_column( column1 )
         self.users.append_column( column2 )
@@ -95,18 +95,18 @@ class Asistente:
 
         # Opciones
         self.options = gtk.TreeView()
-        self.renderer1 = gtk.CellRendererToggle()
-        self.renderer1.set_property('activatable', True)
-        self.renderer1.connect( 'toggled', self.marcar_opcion)
-        column4 = gtk.TreeViewColumn(_("Opción"), self.renderer, text=0)
-        column5 = gtk.TreeViewColumn(_("Tamaño"), self.renderer2, text=2)
-        self.renderer2.set_property('xalign', 1.0)
-        column5.set_cell_data_func(self.renderer2, self.space_units, data=None)
+        rndr1 = gtk.CellRendererToggle()
+        rndr1.set_property('activatable', True)
+        rndr1.connect( 'toggled', self.marcar_opcion)
+        column4 = gtk.TreeViewColumn(_("Opción"), rndr, text=0)
+        column5 = gtk.TreeViewColumn(_("Tamaño"), rndr2, text=2)
+        rndr2.set_property('xalign', 1.0)
+        column5.set_cell_data_func(rndr2, self.space_units, data=None)
 
-        column6 = gtk.TreeViewColumn(_("Descripción"), self.renderer, text=3)
-        column6.set_cell_data_func(self.renderer, self.italic, data=None)
-        column7 = gtk.TreeViewColumn(_("Migrar"), self.renderer1 )
-        column7.add_attribute( self.renderer1, "active", 1)
+        column6 = gtk.TreeViewColumn(_("Descripción"), rndr, text=3)
+        column6.set_cell_data_func(rndr, self.italic, data=None)
+        column7 = gtk.TreeViewColumn(_("Migrar"), rndr1 )
+        column7.add_attribute( rndr1, "active", 1)
         self.options.append_column( column4 )
         self.options.append_column( column7 )
         self.options.append_column( column5 )
@@ -115,8 +115,8 @@ class Asistente:
         #Resumen
         self.tasks = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_FLOAT, gobject.TYPE_STRING, object)
         self.resumen = gtk.TreeView(self.tasks)
-        column8 = gtk.TreeViewColumn(_("Tarea"), self.renderer, text=0)
-        column9 = gtk.TreeViewColumn("", self.renderer_pixbuf, stock_id=1)
+        column8 = gtk.TreeViewColumn(_("Tarea"), rndr, text=0)
+        column9 = gtk.TreeViewColumn("", rndr_pixbuf, stock_id=1)
         progressrenderer = gtk.CellRendererProgress()
         column10 = gtk.TreeViewColumn(_("Progreso"), progressrenderer, value=2, text=3)
         progressrenderer.set_property('height', 10)
@@ -127,25 +127,26 @@ class Asistente:
 
         gtk.about_dialog_set_url_hook(self.open_url, self.url)
 
-        # ventana principal
-        contenedor = gtk.VBox(False, 1)#Creo la caja vertical principal
-        self.inicio = gtk.VBox(False, 1)
-        self.segunda = gtk.VBox(False, 1)
-        self.tercera = gtk.HBox(False, 1)
-        self.cuarta = gtk.VBox(False, 1)
-        self.quinta = gtk.VBox(False, 1)
+        # ventana box_principal
+        box_principal = gtk.VBox(False, 0)#Creo la caja vertical box_principal
+        # Etapas o Stages
+        self.box_inicial = gtk.VBox(False, 1)
+        self.box_usuarios = gtk.VBox(False, 1)
+        self.box_opciones = gtk.HBox(False, 1)
+        self.box_migracion = gtk.VBox(False, 1)
+        
         separador1 = gtk.HSeparator()
         separador2 = gtk.HSeparator()
         self.tooltips = gtk.Tooltips()
-        principal = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
-        principal0 = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
-        principal1 = gtk.VBox(False, 1)#Creo lo que va a ir variando
-        principal2 = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
-        principal2ver1 = gtk.HBox(False, 1)
-        principal2ver2 = gtk.HButtonBox()
-        principal2ver2.set_layout(gtk.BUTTONBOX_END)
-        principal2ver2.set_size_request(550,60)
-        principal2ver2.set_border_width(10)
+        
+        box_statico_sup = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
+        box_variable = gtk.VBox(False, 1)#Creo lo que va a ir variando
+        box_statico_inf = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
+        box_statico_infver1 = gtk.HBox(False, 1)
+        box_statico_infver2 = gtk.HButtonBox()
+        box_statico_infver2.set_layout(gtk.BUTTONBOX_END)
+        box_statico_infver2.set_size_request(550,60)
+        box_statico_infver2.set_border_width(10)
         image = gtk.Image()
         image.set_from_file(os.path.join(dir_imagenes, "cab_amigu.png"))
 
@@ -159,7 +160,6 @@ class Asistente:
         espacio = gtk.Label()
 
         # botones
-        self.toolbar = gtk.Toolbar()
         self.stop_boton = gtk.Button(stock = gtk.STOCK_CANCEL)
         self.back_boton = gtk.Button(stock = gtk.STOCK_GO_BACK)
         self.forward_boton = gtk.Button(stock = gtk.STOCK_GO_FORWARD)
@@ -170,37 +170,35 @@ class Asistente:
 
         # añadir
         self.labelpri = gtk.Label("")
-
         self.labelpri.set_line_wrap(True)
         self.labelpri.set_justify(gtk.JUSTIFY_LEFT)
         self.labelpri.set_use_markup(True)
-        principal.pack_start(image, False, False, 0)
-        principal0.pack_start(self.labelpri, False, False, 10)
-        principal1.pack_start(self.inicio, True, False, 0)
-        principal2.pack_start(principal2ver1, False, False, 0)
-        principal2.pack_start(principal2ver2, True, False, 0)
+        
 
-        principal2ver1.pack_start(image1, True, True, 0)
-        principal2ver1.pack_start(self.etapa, False, False, 1)
-        principal2ver2.pack_start(self.about_boton, False, False, 0)
-        principal2ver2.pack_start(self.back_boton, False, False, 0)
-        principal2ver2.pack_start(self.forward_boton, False, False, 0)
-        principal2ver2.pack_start(self.apply_boton, False, False, 0)
-        principal2ver2.pack_start(espacio, True, True, 2)
-        principal2ver2.pack_start(self.exit_boton, False, False, 0)
-        principal2ver2.pack_start(self.stop_boton, True, False, 5)
-        contenedor.pack_start(principal, False, False, 1)
-        contenedor.pack_start(separador1, False, True, 10)
-        contenedor.pack_start(principal0, False, False, 1)
-        contenedor.pack_start(principal1, True, True, 1)
-        contenedor.pack_start(separador2, False, True, 10)
-        contenedor.pack_start(principal2, False, True, 1)
-        #contenedor.pack_start(self.toolbar, False, True, 0)
-        principal1.pack_start(self.segunda, True, True, 1)
-        principal1.pack_start(self.tercera, True, True, 1)
-        principal1.pack_start(self.cuarta, True, True, 1)
-        principal1.pack_start(self.quinta, True, True, 1)
-        self.window.add(contenedor)#Añado a la ventana el contenedor
+        box_statico_sup.pack_start(self.labelpri, False, False, 10)
+        box_variable.pack_start(self.box_inicial, True, False, 0)
+        box_statico_inf.pack_start(box_statico_infver1, False, False, 0)
+        box_statico_inf.pack_start(box_statico_infver2, True, False, 0)
+
+        box_statico_infver1.pack_start(image1, True, True, 0)
+        box_statico_infver1.pack_start(self.etapa, False, False, 1)
+        box_statico_infver2.pack_start(self.about_boton, False, False, 0)
+        box_statico_infver2.pack_start(self.back_boton, False, False, 0)
+        box_statico_infver2.pack_start(self.forward_boton, False, False, 0)
+        box_statico_infver2.pack_start(self.apply_boton, False, False, 0)
+        box_statico_infver2.pack_start(espacio, True, True, 2)
+        box_statico_infver2.pack_start(self.exit_boton, False, False, 0)
+        box_statico_infver2.pack_start(self.stop_boton, True, False, 5)
+        box_principal.pack_start(image, False, False, 0)
+        box_principal.pack_start(separador1, False, True, 10)
+        box_principal.pack_start(box_statico_sup, False, False, 1)
+        box_principal.pack_start(box_variable, True, True, 1)
+        box_principal.pack_start(separador2, False, True, 10)
+        box_principal.pack_start(box_statico_inf, False, True, 1)
+        box_variable.pack_start(self.box_usuarios, True, True, 1)
+        box_variable.pack_start(self.box_opciones, True, True, 1)
+        box_variable.pack_start(self.box_migracion, True, True, 1)
+        self.window.add(box_principal)#Añado a la ventana el box_principal
 
         # eventos
         self.back_boton.connect("clicked", self.etapa_anterior)
@@ -226,18 +224,18 @@ class Asistente:
         label1.set_markup('<b>'+_('Bienvenido al Asistente de MIgración de GUadalinex - AMIGU') + '\n\n' + _('Este asistente le guiará durante el proceso de migración de sus documentos y configuraciones de su sistema operativo Windows.') + '\n' + _('Pulse el botón Adelante para comenzar.') + '</b>')
 
         # añadir
-        self.inicio.pack_start(label1, True, True, 10)
+        self.box_inicial.pack_start(label1, True, True, 10)
 
         # mostrar
         self.back_boton.hide_all()
-        self.inicio.show_all()
+        self.box_inicial.show_all()
 
 
 ################Segunda Ventana
 
         #crear
-        self.segundahor1 = gtk.HBox(False, 1)
-        self.segundahor2 = gtk.HBox(True, 10)
+        self.box_usuarioshor1 = gtk.HBox(False, 1)
+        self.box_usuarioshor2 = gtk.HBox(True, 10)
         self.label2 = gtk.Label()
         self.label2.set_use_markup(True)
         self.label2.set_markup('<b>'+_('Buscando usuarios de otros sistemas...')+'</b>')
@@ -249,27 +247,27 @@ class Asistente:
         # añadir
         sw.add(self.users)
         frame1.add(sw)
-        self.segundahor1.pack_start(self.label2, False, False, 10)
-        self.segundahor2.pack_start(frame1, True, True, 10)
-        self.segunda.pack_start(self.segundahor2, True, True, 1)
-        self.segunda.pack_start(self.segundahor1, False, False, 1)
+        self.box_usuarioshor1.pack_start(self.label2, False, False, 10)
+        self.box_usuarioshor2.pack_start(frame1, True, True, 10)
+        self.box_usuarios.pack_start(self.box_usuarioshor2, True, True, 1)
+        self.box_usuarios.pack_start(self.box_usuarioshor1, False, False, 1)
 
 
 
 ###############################Tercera Ventana
 
         # crear
-        self.terceraver1 = gtk.HBox(False, 10)
-        self.terceraver2 = gtk.HBox(False, 5)
-        self.terceraver3 = gtk.HBox(False, 10)
-        self.terceraver4 = gtk.HBox(False, 10)
+        self.box_opcionesver1 = gtk.HBox(False, 10)
+        self.box_opcionesver2 = gtk.HBox(False, 5)
+        self.box_opcionesver3 = gtk.HBox(False, 10)
+        self.box_opcionesver4 = gtk.HBox(False, 10)
         
-        self.tercerahor1 = gtk.VBox(False, 3)
-        self.tercerahor2 = gtk.VBox(False, 10)
-        self.tercerahor3 = gtk.VBox(False, 5)
-        self.tercerahor4 = gtk.VBox(False, 5)
-        self.tercerahor5 = gtk.VBox(False, 5)
-        self.tercerahor6 = gtk.VBox(False, 5)
+        self.box_opcioneshor1 = gtk.VBox(False, 3)
+        self.box_opcioneshor2 = gtk.VBox(False, 10)
+        self.box_opcioneshor3 = gtk.VBox(False, 5)
+        self.box_opcioneshor4 = gtk.VBox(False, 5)
+        self.box_opcioneshor5 = gtk.VBox(False, 5)
+        self.box_opcioneshor6 = gtk.VBox(False, 5)
         self.frame4 = gtk.Frame(_("Cuenta"))
         frame2 = gtk.Frame(_("Espacio requerido"))
         self.entry = gtk.Entry()
@@ -316,39 +314,39 @@ class Asistente:
         self.sw3.add(self.options)
 
         # añadir
-        self.tercera.pack_start(self.terceraver1, False, False, 0)
-        self.tercera.pack_start(frame5, True, True, 0)
-        self.terceraver1.pack_start(self.tercerahor2, False, False, 10)
-        self.terceraver2.pack_start(self.imagen_usuario, True, True, 5)
-        self.terceraver2.pack_start(self.cuenta, True, True, 5)
+        self.box_opciones.pack_start(self.box_opcionesver1, False, False, 0)
+        self.box_opciones.pack_start(frame5, True, True, 0)
+        self.box_opcionesver1.pack_start(self.box_opcioneshor2, False, False, 10)
+        self.box_opcionesver2.pack_start(self.imagen_usuario, True, True, 5)
+        self.box_opcionesver2.pack_start(self.cuenta, True, True, 5)
         frame5.add(self.sw3)
-        self.frame4.add(self.terceraver2)
-        frame2.add(self.tercerahor1)
-        self.tercerahor3.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
-        self.tercerahor3.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.tercerahor4.pack_start(self.datos_req, True, True, 0)
-        self.tercerahor4.pack_start(self.datos_libre, True, True, 0)
-        self.tercerahor1.pack_start(self.terceraver3, True, True, 0)
-        self.terceraver3.pack_start(self.tercerahor3, True, False, 0)
-        self.terceraver3.pack_start(self.tercerahor4, True, True, 0)
-        self.tercerahor1.pack_start(self.entry, True, False, 0)
-        self.tercerahor1.pack_start(boton22, True, False, 0)
-        self.tercerahor1.pack_start(gtk.HSeparator(), True, False, 0)
-        self.tercerahor1.pack_start(self.terceraver4, True, True, 0)
-        self.terceraver4.pack_start(self.tercerahor5, True, False, 0)
-        self.terceraver4.pack_start(self.tercerahor6, True, True, 0)
-        self.tercerahor5.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
-        self.tercerahor5.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.tercerahor6.pack_start(self.conf_req, True, False, 0)
-        self.tercerahor6.pack_start(self.conf_libre, True, False, 0)
-        self.tercerahor2.pack_start(self.frame4, True, False, 0)
-        self.tercerahor2.pack_start(frame2, True, False, 0)
+        self.frame4.add(self.box_opcionesver2)
+        frame2.add(self.box_opcioneshor1)
+        self.box_opcioneshor3.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
+        self.box_opcioneshor3.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
+        self.box_opcioneshor4.pack_start(self.datos_req, True, True, 0)
+        self.box_opcioneshor4.pack_start(self.datos_libre, True, True, 0)
+        self.box_opcioneshor1.pack_start(self.box_opcionesver3, True, True, 0)
+        self.box_opcionesver3.pack_start(self.box_opcioneshor3, True, False, 0)
+        self.box_opcionesver3.pack_start(self.box_opcioneshor4, True, True, 0)
+        self.box_opcioneshor1.pack_start(self.entry, True, False, 0)
+        self.box_opcioneshor1.pack_start(boton22, True, False, 0)
+        self.box_opcioneshor1.pack_start(gtk.HSeparator(), True, False, 0)
+        self.box_opcioneshor1.pack_start(self.box_opcionesver4, True, True, 0)
+        self.box_opcionesver4.pack_start(self.box_opcioneshor5, True, False, 0)
+        self.box_opcionesver4.pack_start(self.box_opcioneshor6, True, True, 0)
+        self.box_opcioneshor5.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
+        self.box_opcioneshor5.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
+        self.box_opcioneshor6.pack_start(self.conf_req, True, False, 0)
+        self.box_opcioneshor6.pack_start(self.conf_libre, True, False, 0)
+        self.box_opcioneshor2.pack_start(self.frame4, True, False, 0)
+        self.box_opcioneshor2.pack_start(frame2, True, False, 0)
 
 
 ################Cuarta Ventana
 
         # crear
-        self.cuartahor1 = gtk.HBox(False, 10)
+        self.box_migracionhor1 = gtk.HBox(False, 10)
         frame3 = gtk.Frame(_("Tareas a realizar"))
         sw1 = gtk.ScrolledWindow()
         sw1.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
@@ -359,11 +357,12 @@ class Asistente:
         self.progreso.set_text(_("Realizando las tareas solicitadas..."))
 
         #añadir
-        self.cuarta.pack_start(self.cuartahor1, True, True, 0)
-        self.cuartahor1.pack_start(frame3, True, True, 10)
+        self.box_migracion.pack_start(self.box_migracionhor1, True, True, 0)
+        self.box_migracionhor1.pack_start(frame3, True, True, 10)
         frame3.add(sw1)
         sw1.add(self.resumen)
-        self.cuarta.pack_start(self.progreso, False, False, 10)
+        #self.box_migracion.pack_start(gtk.Label(_("Estado del proceso de migración")), True, False, 2)
+        self.box_migracion.pack_start(self.progreso, False, False, 9)
 
         try:
             child = gtk.EventBox()
@@ -373,6 +372,7 @@ class Asistente:
         except:
             pass
 
+        self.window.set_focus(self.forward_boton)
 
 ########Cuadros de dialogo
 
@@ -406,28 +406,39 @@ class Asistente:
         dialog.destroy()
 
 
-    def dialogo_advertencia(self, mensaje = ""):
+    def dialogo_advertencia(self, mensaje = "", progreso=False):
         """Muestra mensajes de aviso"""
         # crear
-        advertencia = gtk.Dialog(_("Aviso"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+        self.advertencia = gtk.Dialog(_("Aviso"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
                      (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT,))
-        logoad = gtk.Image()
-        logoad.set_from_stock(gtk.STOCK_DIALOG_WARNING, 6)
-        iconad = advertencia.render_icon(gtk.STOCK_DIALOG_WARNING, 1)
-        mensaje = gtk.Label(mensaje)
+        
         h1 = gtk.HBox(False, 10)
 
-
         # añadir
-        advertencia.set_icon(iconad)
-        advertencia.vbox.pack_start(h1, True, False, 10)
+        self.advertencia.vbox.pack_start(h1, True, False, 10)
+        if progreso:
+            self.progreso2 = gtk.ProgressBar(None)
+            self.progreso2.pulse()
+            self.advertencia.vbox.pack_start(self.progreso2, True, False, 1)
+            stock = gtk.STOCK_EXECUTE
+            self.wait = True
+            hilo2 = threading.Thread(target=self.pulse, args=())
+            hilo2.start()
+        else:
+            stock = gtk.STOCK_DIALOG_WARNING
+        logoad = gtk.Image()
+        logoad.set_from_stock(stock, 6)
+        iconad = self.advertencia.render_icon(stock, 1)
+        self.advertencia.set_icon(iconad)
+        mensaje = gtk.Label(mensaje)
         h1.pack_start(logoad, True, False, 10)
         h1.pack_start(mensaje, True, False, 10)
-        advertencia.show_all()
-        advertencia.set_default_response(gtk.RESPONSE_ACCEPT)
-        advertencia.run()
-        #r = advertencia.response()
-        advertencia.destroy()
+        self.advertencia.show_all()
+        self.advertencia.set_default_response(gtk.RESPONSE_ACCEPT)
+        self.advertencia.run()
+        #r = self.advertencia.response()
+        self.wait = False
+        self.advertencia.destroy()
 
 
 
@@ -541,6 +552,7 @@ class Asistente:
 
     def marcar_usuario(self, widget):
         self.forward_boton.set_sensitive(True)
+        self.window.set_focus(self.forward_boton)
 
 
     def actualizar_espacio(self, widget=None):
@@ -570,11 +582,10 @@ class Asistente:
     def mostrar_paso(self):
         """Actualiza el contenido del asistente en función del paso actual"""
         # Ocultar todo
-        self.inicio.hide()
-        self.segunda.hide()
-        self.tercera.hide()
-        self.cuarta.hide()
-        self.quinta.hide()
+        self.box_inicial.hide()
+        self.box_usuarios.hide()
+        self.box_opciones.hide()
+        self.box_migracion.hide()
         self.back_boton.show_all()
         self.back_boton.set_sensitive(True)
         self.forward_boton.show()
@@ -585,14 +596,14 @@ class Asistente:
 
         if self.paso == 1:
 
-            self.inicio.show()
+            self.box_inicial.show()
             self.labelpri.set_markup('')
             self.back_boton.hide_all()
             self.forward_boton.set_sensitive(True)
 
         elif self.paso == 2:
 
-            self.segunda.show_all()
+            self.box_usuarios.show_all()
             self.labelpri.set_markup('<span face="arial" size="12000" foreground="chocolate"><b>'+_('SELECCIÓN DE USUARIO')+'</b></span>')
             if not len(self.list_users):
                 #self.textbuffer.set_text(_('Buscando usuarios de Windows. Por favor espere...'))
@@ -607,18 +618,21 @@ class Asistente:
             self.selected_user = model.get_value(iter, 3)
             if self.selected_user.os.find('MS') == -1:
                 self.paso = 2
-                self.segunda.show()
+                self.box_usuarios.show()
                 self.dialogo_advertencia(_("Opción no disponible actualmente. \nSeleccione otro tipo de usuario"))
                 return 0
             self.imagen_usuario.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_user.get_avatar(), 80, 80))
             self.cuenta.set_markup('<b>%s</b>\n<i>%s</i>'% (self.selected_user.get_name(), self.selected_user.os))
             self.labelpri.set_markup('<span face="arial" size="12000" foreground="chocolate"><b>'+_('OPCIONES DE MIGRACIÓN')+'</b></span>')
-            self.options.set_model(self.selected_user.get_tree_options())
-            #self.options.expand_row((0,1,1), True)
-            self.options.expand_all()
-            self.forward_boton.set_sensitive(True)
-            self.tercera.show_all()
+            #self.options.set_model(self.selected_user.get_tree_options())
+            
+            self.options.set_model(None)
+            self.hilo = threading.Thread(target=self.load_options, args=())
+            self.hilo.start()
+            
+            self.box_opciones.show_all()
             self.forward_boton.show_all()
+            self.dialogo_advertencia(_("Analizando usuario..."),True)
 
         elif self.paso == 4:
 
@@ -628,22 +642,22 @@ class Asistente:
                 f = folder(self.destino)
                 if not f or not f.path:
                     self.paso = 3
-                    self.tercera.show()
+                    self.box_opciones.show()
                     self.dialogo_advertencia(_("Ruta de destino no válida"))
 
                 elif not f.is_writable():
                     self.paso = 3
-                    self.tercera.show()
+                    self.box_opciones.show()
                     self.dialogo_advertencia(_("No dispone de permiso de escritura para la ubicación seleccionada"))
 
                 elif self.available["data"] < self.required["data"]:
                     self.paso = 3
-                    self.tercera.show()
+                    self.box_opciones.show()
                     self.dialogo_advertencia(_("Espacio en disco insuficiente.") + '\n' + _('Seleccione otra ubicación de destino o cambie sus opciones de migración'))
 
                 elif self.available["conf"] < self.required["conf"]:
                     self.paso = 3
-                    self.tercera.show()
+                    self.box_opciones.show()
                     self.dialogo_advertencia(_("Espacio en disco insuficiente.") + '\n' + _('Libere espacio en su carpeta personal o cambie sus opciones de migración'))
 
                 else:
@@ -651,19 +665,19 @@ class Asistente:
                     self.generar_resumen(self.options.get_model())
                     self.forward_boton.hide()
                     self.apply_boton.show_all()
-                    self.cuarta.show_all()
+                    self.box_migracion.show_all()
                     self.progreso.hide()
+                    self.window.set_focus(self.apply_boton)
             else:
                 self.paso = 3
-                self.tercera.show()
+                self.box_opciones.show()
                 self.dialogo_advertencia(_("Introduzca una ubicación de destino"))
 
 
         elif self.paso == 5:
 
             self.labelpri.set_markup('<span face="arial" size="12000" foreground="chocolate"><b>'+_('DETALLES DE LA MIGRACIÓN')+'</b></span>')
-            #self.quinta.show_all()
-            self.cuarta.show_all()
+            self.box_migracion.show_all()
             self.back_boton.hide_all()
             self.forward_boton.hide_all()
             time.sleep(0.2)
@@ -671,6 +685,22 @@ class Asistente:
             self.hilo.start()
         self.stop_boton.window.set_cursor(None)
 
+    def pulse(self):
+        while self.wait:
+            gtk.gdk.threads_enter()
+            self.progreso2.pulse()
+            gtk.gdk.threads_leave()
+            time.sleep(0.15)
+
+    def load_options(self):
+        tree_options = self.selected_user.get_tree_options()
+        gtk.gdk.threads_enter()
+        self.options.set_model(tree_options)
+        self.options.expand_all()
+        self.forward_boton.set_sensitive(True)
+        self.advertencia.destroy()
+        gtk.gdk.threads_leave()
+        self.wait = False
 
     def buscar_usuarios(self):
         """Busca usuarios de otros sistemas en el ordenador"""
@@ -824,7 +854,12 @@ class Asistente:
                     por = 0.0
                 self.progreso.set_fraction(por)
                 self.progreso.set_text(_("Importando") + ' '+ tarea.description)
-                self.tasks.set_value(task, 3, _("Migrando..."))
+                if tarea.size > 102400:
+                    self.tasks.set_value(task, 3, _("Migrando...(Puede llevar algún rato)"))
+                elif tarea.size > 1024000:
+                    self.tasks.set_value(task, 3, _("Migrando...(Tenga paciencia)"))
+                else:
+                    self.tasks.set_value(task, 3, _("Migrando..."))
                 path = self.tasks.get_path(task)
                 self.resumen.set_cursor(path)
                 gtk.gdk.threads_leave()

@@ -233,7 +233,7 @@ class winuser(regedit, generic_usr):
         folder_2_copy = []
         if self.os.find("Vista") > 1:
             for s in folder(self.path).get_subfolders():
-                add = s.get_size() and not s.get_name() in ('AppData', 'Links', 'Tracing', 'Searches', 'Cookies', 'NetHood', 'PrintHood', 'Local Settings', 'Application Data', 'Recent', 'Templates', 'SendTo', 'Start Menu', 'Saved Games', 'Favorites','Contacts')
+                add = s.get_size() and not s.get_name() in ('AppData', 'Links', 'Tracing', 'Searches', 'Cookies', 'NetHood', 'PrintHood', 'Local Settings', 'Application Data', 'Recent', 'Templates', 'SendTo', 'Start Menu', 'Saved Games', 'Favorites','Contacts') and not s.get_name().startswith('{')
                 if add:
                     folder_2_copy.append(s)
         else:
