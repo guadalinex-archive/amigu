@@ -323,8 +323,15 @@ class mailreader(application):
                     for l in old_cal.readlines():
                         if l.find('END:VCALENDAR') == -1:
                             new_cal.write(l)
-                        if l.find('DTSTART') != -1:
-                            dates.append(l.replace('DTSTART:', ''))
+                        if l.find('BEGIN:VEVENT') != -1:
+                            dt, sum = None, None
+                        elif l.find('END:VEVENT') != -1:
+                            if dt and sum:
+                                dates.append(dt+sum)
+                        elif l.find('DTSTART') != -1:
+                            dt = l.replace('DTSTART:', '')
+                        elif l.find('SUMMARY') != -1:
+                            sum = l.replace('SUMMARY:', '')
                     old_cal.close()
             orig = open(vcal,"r")
             events = False
@@ -337,17 +344,15 @@ class mailreader(application):
             for l in orig.readlines():
                 buffer += l
                 if l.find('BEGIN:VEVENT') != -1:
+                    dt, sum = None, None
                     buffer = l
-                    repeated = False
                 elif l.find('END:VEVENT') != -1:
-                    if not repeated:
+                    if dt and sum and not dt+sum in dates:
                         new_cal.write(buffer)
                 elif l.find('DTSTART') != -1:
-                    repeated = l.replace('DTSTART:', '') in dates
+                    dt = l.replace('DTSTART:', '')
                 elif l.find('SUMMARY') != -1:
-                    #repeated = l.replace('SUMMARY:', '') in dates
-                    pass
-                
+                    sum = l.replace('SUMMARY:', '')
             new_cal.write('END:VCALENDAR\n')
             orig.close()
             os.remove(vcal)

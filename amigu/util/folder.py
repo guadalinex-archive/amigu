@@ -282,7 +282,7 @@ class copier(application):
     
     def initialize(self):
 
-        self.name = _(self.option.get_name())
+        self.name = self.option.get_name()
         self.size = self.option.get_size()
         self.files = self.option.count_files()
         self.copied = 0

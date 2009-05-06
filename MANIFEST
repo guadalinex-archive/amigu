@@ -29,5 +29,7 @@ bin/dumphive
 imagenes/cab_amigu.png
 imagenes/icon_paginacion.png
 translations/es/LC_MESSAGES/amigu.mo
+translations/en/LC_MESSAGES/amigu.mo
+share/places.sqlite
 amigu.desktop
 CHANGELOG

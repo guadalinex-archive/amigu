@@ -56,11 +56,16 @@ CREATE UNIQUE INDEX moz_places_url_uniqueindex ON moz_places (url);
 CREATE INDEX moz_places_visitcount ON moz_places (visit_count);
 CREATE TRIGGER moz_bookmarks_beforedelete_v1_trigger BEFORE DELETE ON moz_bookmarks FOR EACH ROW WHEN OLD.keyword_id NOT NULL BEGIN DELETE FROM moz_keywords WHERE id = OLD.keyword_id AND  NOT EXISTS (SELECT id FROM moz_bookmarks WHERE keyword_id = OLD.keyword_id AND id <> OLD.id LIMIT 1); END;
 CREATE TRIGGER moz_historyvisits_afterdelete_v1_trigger AFTER DELETE ON moz_historyvisits FOR EACH ROW WHEN OLD.visit_type NOT IN (0,4,7) BEGIN UPDATE moz_places SET visit_count = visit_count - 1 WHERE moz_places.id = OLD.place_id AND visit_count > 0; END;
-CREATE TRIGGER moz_historyvisits_afterinsert_v1_trigger AFTER INSERT ON moz_historyvisits FOR EACH ROW WHEN NEW.visit_type NOT IN (0,4,7) BEGIN UPDATE moz_places SET visit_count = visit_count + 1 WHERE moz_places.id = NEW.place_id; END;INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 0, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 0, '', NULL, NULL);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('places',1);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('menu',2);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('toolbar',3);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('tags',4);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('unfiled',5);""")
+CREATE TRIGGER moz_historyvisits_afterinsert_v1_trigger AFTER INSERT ON moz_historyvisits FOR EACH ROW WHEN NEW.visit_type NOT IN (0,4,7) BEGIN UPDATE moz_places SET visit_count = visit_count + 1 WHERE moz_places.id = NEW.place_id; END;INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 0, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 0, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 1, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 2, '', NULL, NULL);INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type) VALUES (2, 1, 3, '', NULL, NULL);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('places',1);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('menu',2);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('toolbar',3);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('tags',4);INSERT INTO moz_bookmarks_roots (root_name, folder_id) VALUES('unfiled',5);""")
                 conn.commit()
             except sqlite3.Error, e:
                 print "An error occurred:", e.args[0]
             conn.close()
+            #FIX ME!!!!!!!!!!!!!!!!!!
+            try:
+                shutil.copy2('/usr/share/amigu/places.sqlite', self.bookmarks_file)
+            except:
+                pass
 
 
     def get_connection(self):
@@ -100,18 +105,20 @@ CREATE TRIGGER moz_historyvisits_afterinsert_v1_trigger AFTER INSERT ON moz_hist
                     host = '.'+url.split('/')[2]
                     host = host[::-1]
                     id = 0
-                    q = "SELECT id FROM moz_places WHERE url='%s'" % url
+                    q = "SELECT moz_places.id, moz_bookmarks.parent FROM moz_places LEFT JOIN moz_bookmarks ON moz_places.id = moz_bookmarks.fk WHERE moz_places.url='%s'" % url
                     cursor.execute(q)
                     r = cursor.fetchone()
+                    parent = None
                     if r:
                         id = int(r[0])
+                        parent = int(r[1])
                     else:
                         q = "INSERT INTO moz_places (url, title, rev_host, favicon_id) VALUES ('%s', '%s', '%s', NULL)" % (url, title, host)
                         cursor.execute(q)
                         id = cursor.lastrowid
-                        if id:
-                            q = "INSERT INTO moz_bookmarks  (fk, type, parent, position, title, keyword_id, folder_type, dateAdded, lastModified) VALUES (%d, 1, %d, 0, '%s', NULL, NULL, %d, %d)" % (id, id_parent, title, int(time.time()),  int(time.time()))
-                            cursor.execute(q)
+                    if id and parent != id_parent:
+                        q = "INSERT INTO moz_bookmarks  (fk, type, parent, position, title, keyword_id, folder_type, dateAdded, lastModified) VALUES (%d, 1, %d, 101, '%s', NULL, NULL, %d, %d)" % (id, id_parent, title, int(time.time()),  int(time.time()))
+                        cursor.execute(q)
                 else:
                     #carpeta
                     q ="SELECT id FROM moz_bookmarks WHERE title='%s'" % title
@@ -120,7 +127,7 @@ CREATE TRIGGER moz_historyvisits_afterinsert_v1_trigger AFTER INSERT ON moz_hist
                     if r:
                         id = int(r[0])
                     else:
-                        q = "INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type, dateAdded, lastModified) VALUES (2, %d, 0, '%s', NULL, NULL, %d, %d)" % (id_parent, title, int(time.time()),  int(time.time()))
+                        q = "INSERT INTO moz_bookmarks  (type, parent, position, title, keyword_id, folder_type, dateAdded, lastModified) VALUES (2, %d, 100, '%s', NULL, NULL, %d, %d)" % (id_parent, title, int(time.time()),  int(time.time()))
                         cursor.execute(q)
                         id = cursor.lastrowid
                     iter_children = tree.iter_children(iter)

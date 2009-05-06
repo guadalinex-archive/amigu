@@ -3,6 +3,7 @@
 # Permite configurar el fondo de escritorio e instalar nuevas fuentes true-type.
 
 import os, re, shutil, glob, random
+from os.path import expanduser, join, split, exists, dirname, getsize
 from amigu.util.folder import *
 from amigu.apps.base import application
 from amigu import _
@@ -37,31 +38,31 @@ class emule(application):
             e = self.user.search_key("Software\eMule")
             if e and 'Install Path' in e.keys():
                 path = e["Install Path"].replace(e["Install Path"][:2], self.user.mount_points[e["Install Path"][:2]])
-                if os.path.exists(os.path.join(path,'config','preferences.ini')):
-                    return folder(os.path.join(path,'config'))
+                if exists(join(path,'config','preferences.ini')):
+                    return folder(join(path,'config'))
         elif self.user.os.find('Vista') > 0:
-            d = os.path.join(self.user.folders["Local AppData"].path, 'eMule', 'config')
-            if os.path.exists(d):
+            d = join(self.user.folders["Local AppData"].path, 'eMule', 'config')
+            if exists(d):
                 return folder(d)
         
         
     def config_aMule(self):
         """Configura el programa de P2P aMule con la configuración del programa eMule en Windows"""
-        amule = folder(os.path.join(os.path.expanduser('~'), '.aMule'))
+        amule = folder(join(expanduser('~'), '.aMule'))
         if amule:
             # copy edonkey config files
             self.cfg_dir.copy(amule, extension = ['.ini','.dat','.met'])
             # copy edonkey temporary files
-            conf = os.path.join(amule.path, 'amule.conf')
+            conf = join(amule.path, 'amule.conf')
             bak = backup(conf)
             try:
-                emupref = open(os.path.join(amule.path,'preferences.ini'),'r')
+                emupref = open(join(amule.path,'preferences.ini'),'r')
                 amuconf = open(conf, 'w')
                 for l in emupref.readlines():
                     if l.find("IncomingDir") != -1:
-                        l = "IncomingDir=%s\n" % os.path.join(amule.path,'Incoming')
+                        l = "IncomingDir=%s\n" % join(amule.path,'Incoming')
                     if l.find("TempDir") != -1:
-                        l = "TempDir=%s\n" % os.path.join(amule.path,'Temp')
+                        l = "TempDir=%s\n" % join(amule.path,'Temp')
                     amuconf.write(l)
                 amuconf.close()
                 emupref.close()
@@ -80,9 +81,11 @@ class emule(application):
         elif self.user.os.find('XP') > 1:
             f = self.user.get_personal_folder().path
         if self.inc_dir and not self.inc_dir.path.startswith(f):
-            self.inc_dir.copy(os.path.join(os.path.expanduser('~'), '.aMule'), function=self.update_progress, delta=25.0/(self.inc_dir.count_files()+1))
+            self.inc_dir.copy(join(expanduser('~'), '.aMule'), function=self.update_progress, delta=25.0/(self.inc_dir.count_files()+1))
         if self.tmp_dir and not self.tmp_dir.path.startswith(f):
-            self.tmp_dir.copy(os.path.join(os.path.expanduser('~'), '.aMule'), extension = ['.part','.met',',part.met'], function=self.update_progress, delta=25.0/(self.tmp_dir.count_files()+1))
+            self.tmp_dir.copy(join(expanduser('~'), '.aMule'), extension = ['.part','.met',',part.met'], function=self.update_progress, delta=25.0/(self.tmp_dir.count_files()+1))
+        else:
+            os.symlink(join(expanduser('~'), '.aMule', 'Temp'))
         return 1
 
 
@@ -90,7 +93,7 @@ class emule(application):
         """Devuelve la ruta del directorio de descargas"""
         a = None
         try:
-            a = open(os.path.join(self.cfg_dir.path,'preferences.ini'), 'r')
+            a = open(join(self.cfg_dir.path,'preferences.ini'), 'r')
             for l in a.readlines():
                 l = l.replace('\r\n','')
                 if l.find("IncomingDir") != -1:
@@ -132,29 +135,29 @@ class wallpaper(application):
         else:
             raise Exception
         
-        if not os.path.exists(self.image):
+        if not exists(self.image):
             #bug in Windows XP
             self.image = self.image.replace('/w','/W')
-        self.size = os.path.getsize(self.image)/1024
+        self.size = getsize(self.image)/1024
 
     def do(self):
-        dest = os.path.expanduser('~') #for GNOME should be /usr/share/bankgrounds and for KDE /usr/share/themes but it requires toot privileges
-        filename = os.path.basename(self.image)
-        wp = os.path.join(dest, filename)
+        dest = expanduser('~') #for GNOME should be /usr/share/bankgrounds and for KDE /usr/share/themes but it requires toot privileges
+        filename = basename(self.image)
+        wp = join(dest, filename)
         self.update_progress(50.0)
         i = 1
-        file, ext = os.path.splitext(wp)
-        while os.path.exists(wp):
+        file, ext = splitext(wp)
+        while exists(wp):
             wp = "%s(%d)%s" % (file, i , ext)
             i += 1
         try:
             shutil.copy2(self.image, dest)
         except:
             return 0
-        if os.path.exists('/usr/bin/gconftool'): # for GNOME
+        if exists('/usr/bin/gconftool'): # for GNOME
             os.system("gconftool --type string --set /desktop/gnome/background/picture_filename %s" % wp.replace(' ','\ '))
             self.update_progress(delta=20.0)
-        if os.path.exists('/usr/bin/dcop'): # for KDE
+        if exists('/usr/bin/dcop'): # for KDE
             os.system('dcop kdesktop KBackgroundIface setWallpaper  %s 4' % wp.replace(' ','\ '))
             self.update_progress(delta=20.0)
         return 1
@@ -167,11 +170,11 @@ class avatar(application):
         self.description = _('Imagen de usuario')
         if self.user.get_avatar().find('nobody') > 0:
             raise Exception
-        self.size = os.path.getsize(self.user.get_avatar())/1024
+        self.size = getsize(self.user.get_avatar())/1024
 
     def do(self):
         self.update_progress(delta=50.0)
-        shutil.copy2(self.user.get_avatar(), os.path.join(os.path.expanduser('~'), '.face'))
+        shutil.copy2(self.user.get_avatar(), join(expanduser('~'), '.face'))
         return 1
 
 
@@ -186,7 +189,7 @@ class fonts_installer(application):
         self.size = self.user.folders["Fonts"].get_size()
 
     def do(self):
-        dest = folder(os.path.join(os.path.expanduser('~'),'.fonts','ttf-windows'))
+        dest = folder(join(expanduser('~'),'.fonts','ttf-windows'))
         inc = 0
         if self.model:
             inc = 99.9/self.user.folders["Fonts"].count_files()
@@ -205,17 +208,18 @@ class calendar(application):
         self.name = _('Calendario de Windows')
         self.description = _('Calendario de Windows')
         self.size = 0
-        self.icals = glob.glob(os.path.join(self.user.folders['Local AppData'].path, 'Microsoft', 'Windows Calendar', 'Calendars','*.ics'))
+        self.icals = glob.glob(join(self.user.folders['Local AppData'].path, 'Microsoft', 'Windows Calendar', 'Calendars','*.ics'))
         if not self.icals:
             raise Exception
         for cal in self.icals:
-            self.size += os.path.getsize(cal)
+            self.size += getsize(cal)
 
     def do(self):
         old = None
-        evo_cal = os.path.join(os.path.expanduser('~'),'.evolution','calendar','local','system','calendar.ics')
-        folder(os.path.dirname(evo_cal))
-        if os.path.exists(evo_cal):
+        evo_cal = join(expanduser('~'),'.evolution','calendar','local','system','calendar.ics')
+        folder(dirname(evo_cal))
+        dates = []
+        if exists(evo_cal):
             old = backup(evo_cal)
             if old:
                 new_cal = open(evo_cal, "w")
@@ -223,6 +227,15 @@ class calendar(application):
                 for l in old_cal.readlines():
                     if l.find('END:VCALENDAR') == -1:
                         new_cal.write(l)
+                    if l.find('BEGIN:VEVENT') != -1:
+                        dt, sum = None, None
+                    elif l.find('END:VEVENT') != -1:
+                        if dt and sum:
+                            dates.append(dt+sum)
+                    elif l.find('DTSTART') != -1:
+                        dt = l.replace('DTSTART:', '')
+                    elif l.find('SUMMARY') != -1:
+                        sum = l.replace('SUMMARY:', '')
                 old_cal.close()
         if not old:
             new_cal = open(evo_cal, "w")
@@ -231,12 +244,19 @@ class calendar(application):
             new_cal.write('VERSION:2.0\n')
         for ical in self.icals:
             orig = open(ical,"r")
-            events = False
+            buffer = ''
             for l in orig.readlines():
+                buffer += l
                 if l.find('BEGIN:VEVENT') != -1:
-                    events = True
-                if events and l.find('END:VCALENDAR') < 0:
-                    new_cal.write(l)
+                    dt, sum = None, None
+                    buffer = l
+                elif l.find('END:VEVENT') != -1:
+                    if dt and sum and not dt+sum in dates:
+                        new_cal.write(buffer)
+                elif l.find('DTSTART') != -1:
+                    dt = l.replace('DTSTART:', '')
+                elif l.find('SUMMARY') != -1:
+                    sum = l.replace('SUMMARY:', '')
             orig.close()
         new_cal.write('END:VCALENDAR\n')
         return 1
@@ -248,16 +268,16 @@ class contacts(application):
         self.name = _('Contactos de Windows')
         self.description = _('Contactos de Windows')
         self.size = 0.0
-        self.cs = glob.glob(os.path.join(self.user.path, 'Contacts','*.contact'))
+        self.cs = glob.glob(join(self.user.path, 'Contacts','*.contact'))
         if not self.cs:
             raise Exception
         for c in self.cs:
-            self.size += os.path.getsize(c)/1024
+            self.size += getsize(c)/1024
 
     def do(self):
         import bsddb
-        adb=os.path.join(os.path.expanduser('~'),'.evolution','addressbook','local','system','addressbook.db')
-        folder(os.path.dirname(adb))
+        adb=join(expanduser('~'),'.evolution','addressbook','local','system','addressbook.db')
+        folder(dirname(adb))
         db = bsddb.hashopen(adb,'w')
         if not 'PAS-DB-VERSION\x00' in db.keys():
             db['PAS-DB-VERSION\x00'] = '0.2\x00'
