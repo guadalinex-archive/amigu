@@ -111,7 +111,7 @@ CREATE TRIGGER moz_historyvisits_afterinsert_v1_trigger AFTER INSERT ON moz_hist
                     parent = None
                     if r:
                         id = int(r[0])
-                        parent = int(r[1])
+                        parent = r[1] and int(r[1])
                     else:
                         q = "INSERT INTO moz_places (url, title, rev_host, favicon_id) VALUES ('%s', '%s', '%s', NULL)" % (url, title, host)
                         cursor.execute(q)

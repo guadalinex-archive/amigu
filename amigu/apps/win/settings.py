@@ -85,7 +85,8 @@ class emule(application):
         if self.tmp_dir and not self.tmp_dir.path.startswith(f):
             self.tmp_dir.copy(join(expanduser('~'), '.aMule'), extension = ['.part','.met',',part.met'], function=self.update_progress, delta=25.0/(self.tmp_dir.count_files()+1))
         else:
-            os.symlink(join(expanduser('~'), '.aMule', 'Temp'))
+            #os.symlink(join(expanduser('~'), '.aMule', 'Temp'))
+            pass
         return 1
 
 
