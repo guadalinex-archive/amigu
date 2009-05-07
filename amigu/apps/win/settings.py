@@ -145,22 +145,24 @@ class wallpaper(application):
         dest = expanduser('~') #for GNOME should be /usr/share/bankgrounds and for KDE /usr/share/themes but it requires toot privileges
         filename = basename(self.image)
         wp = join(dest, filename)
-        self.update_progress(50.0)
+        self.update_progress(10.0)
         i = 1
         file, ext = splitext(wp)
         while exists(wp):
-            wp = "%s(%d)%s" % (file, i , ext)
+            wp = "%s_%d%s" % (file, i , ext)
             i += 1
+        self.update_progress(25.0)
         try:
-            shutil.copy2(self.image, dest)
+            shutil.copy2(self.image, wp)
         except:
             return 0
+        self.update_progress(50.0)
         if exists('/usr/bin/gconftool'): # for GNOME
             os.system("gconftool --type string --set /desktop/gnome/background/picture_filename %s" % wp.replace(' ','\ '))
-            self.update_progress(delta=20.0)
+            self.update_progress(delta=15.0)
         if exists('/usr/bin/dcop'): # for KDE
             os.system('dcop kdesktop KBackgroundIface setWallpaper  %s 4' % wp.replace(' ','\ '))
-            self.update_progress(delta=20.0)
+            self.update_progress(delta=15.0)
         return 1
 
 class avatar(application):

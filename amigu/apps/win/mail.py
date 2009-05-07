@@ -791,7 +791,7 @@ def eml2mbox(emlpath, mbxpath):
                         i += 1
                         break
     d.close()
-    print "%d archivos procesados" % i
+    print "Carpeta %s: %d archivos procesados" % (os.path.dirname(emlpath), i)
 
        
 
