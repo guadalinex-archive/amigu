@@ -2,20 +2,22 @@
 
 import os
 import re
-#from amigu.apps.lnx import *
 from amigu.util.folder import *
-import gettext
+from amigu import _
 
-_ = gettext.gettext
-gettext.textdomain("amigu")
-gettext.bindtextdomain("amigu", "./translations")
 
 class generic_usr:
-    """Clase para los usuarios del PC"""
+    """Clase abstracta para los usuarios del PC"""
 
     def __init__(self, dir, pc, ops):
         """Constructor de la clase.
-        Recibe la ruta a la carpeta del usuario"""
+        
+        Argumentos de entrada:
+        dir  -- directorio raíz del usuario
+        pc -- objeto de la clase PC
+        ops -- sistema operativo al que pertence el usuario
+        
+        """
         self.os = ops
         self.path = dir
         self.name = os.path.split(dir)[1]
@@ -30,10 +32,13 @@ class generic_usr:
         if self.errors: print self.errors
 
     def init_apps(self):
+        """Método a definir por las clases hijas para ejecutarse al 
+        crear el objeto
+        """
         pass
 
     def get_path(self):
-        """Devuelve la carpeta del usuario"""
+        """Devuelve la carpeta raíz del usuario"""
         return self.path
 
     def get_personal_folder(self):
@@ -41,28 +46,41 @@ class generic_usr:
         return self.folders['Personal']
 
     def get_avatar(self):
-            return "/usr/share/pixmaps/nobody.png"
+        """Devuelve la imagen de usuario"""
+        return "/usr/share/pixmaps/nobody.png"
 
     def get_name(self):
-        """Devuelve el nombre del usuario de Windows"""
+        """Devuelve el nombre del usuario en el sistema"""
         return self.name
 
     def get_details(self):
+        """Devuelve información sobre el usuario        OBSOLETO
+        
+        """
         size = "0Mb"
         size = "%.2fMb" % (self.folders['Personal'].get_size()/1024.0)
         return "Sistema Operativo"+": "+self.os +", "+ size +" de datos"
 
     def get_info(self):
-        """Devuelve la información de archivos y programas del usuario"""
+        """Método a definir por las clases hijas.
+        Devuelve la información de archivos y programas del usuario
+        
+        """
         pass
 
     def all_errors(self):
-        """Recopila los errores producidos en tiempo de ejecuccion"""
+        """Devuelve los errores producidos en tiempo de ejecuccion"""
         return self.errors
 
     def get_tree_options(self, update=False):
-        """Genera el árbol de opciones para el usario seleccionado"""
-
+        """Devuele el árbol de opciones generado para el usario seleccionado.
+        El objeto devuelto es de tipo gtk.TreeStore.
+        Este método debe ampliarse en las clases hijas.
+        
+        Argumentos de entrada:
+        update -- indica si se debe actualizar el contenido del árbol (default False)
+        
+        """
         if self.tree_options:
             if update:
                 self.tree_options.clear()
@@ -77,22 +95,25 @@ class generic_usr:
         # Files
         parent = self.tree_options.append(name_usr , [_("Archivos"), None, None, _('Migrar archivos'), None] )
         personal = self.tree_options.append( parent, [_("Carpeta Personal"), None, str(self.folders['Personal'].get_size()), _('Archivos personales: ')+ self.folders['Personal'].get_info(), 'documentos'] )
-        #self.tree_options.append(personal, [_("Escritorio"), None, str(self.folders['Desktop'].get_size()), _('Archivos del escritorio: ')+self.folders['Desktop'].get_info(), 'escritorio'] )
-        #self.tree_options.append(personal, [_("Documentos"), None, str(self.folders['Desktop'].get_size()), _('Archivos del escritorio: ')+self.folders['My Documents'].get_info(), 'docs'] )
-        #self.tree_options.append(personal, [_("Música"), None, str(self.folders['Desktop'].get_size()), _('Archivos del escritorio: ')+self.folders['My Music'].get_info(), 'audio'] )
-        #self.tree_options.append(personal, [_("Videos"), None, str(self.folders['Desktop'].get_size()), _('Archivos del escritorio: ')+self.folders['My Video'].get_info(), 'video'] )
-        #self.tree_options.append(personal, [_("Imágenes"), None, str(self.folders['Desktop'].get_size()), _('Archivos del escritorio: ')+self.folders['My Pictures'].get_info(), 'imagenes'] )
         return self.tree_options
 
     def get_user_folders(self, pc):
-        """Devuelve las carpetas de archivos, configuraciones y programas del usuario"""
+        """Devuelve un diccionario que contiene las carpetas de archivos, 
+        configuraciones y programas del usuario.
+        
+        Esta clase debe ampliarse en las clases hijas
+        
+        Argumentos de entrada:
+        pc -- objeto de tipo PC
+        
+        """
         folders = {}
         folders["Personal"] = folder(self.path)
         return folders
 
     def clean(self):
+        """Método abstracto que elimina los archivos temporales usados"""
         pass
-
 #end class user
 
 
@@ -103,7 +124,7 @@ def test():
     com = pc()
     com.check_all_partitions()
     print "Analizando usuarios...."
-    for user_path, ops in com.get_mac_users().iteritems():
+    for user_path, ops in com.get_win_users().iteritems():
         u = generic_usr(user_path, ops, com)
         print u.get_details()
         print u.get_avatar()

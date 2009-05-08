@@ -1,14 +1,20 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+
 import commands
 import re
 import os
 
 class partition:
-    """Clase para el manejo de particiones"""
+    """Clase para el manejo de particiones del sistema"""
 
     def __init__(self, dev, fs=None):
-        """Constructor de la clase"""
+        """Constructor de la clase
+        
+        Argumentos de entrada:
+        dev -- dispositivo de bloques
+        fs -- sistema de ficheros del dispositivo (default None)
+        """
         if os.path.exists(dev):
             self.dev = dev
         else:
@@ -36,7 +42,9 @@ class partition:
 
     def is_mounted(self, automount=False):
         """Comprueba si la partición está montada y devuelve el punto de
-        montaje actual si lo está"""
+        montaje actual en caso afirmativo
+        
+        """
         mounted = False
         error = False
         try:
@@ -56,15 +64,18 @@ class partition:
                         break
                 except:
                     pass
-                    #error = True
-                    #print entrada
             f.close()
             if not mounted and automount and not error:
-                os.popen('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
+                os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
                 mounted = self.is_mounted()
             return mounted
 
     def detect_os(self):
+        """Detecta el tipo de sistema operativo que contiene la partición.
+        La deteccion está basada en el sistema de ficheros y las carpetas
+        existentes en él
+        
+        """
         if self.filesystem == 'vfat':
             if os.path.exists(os.path.join(self.mountpoint, 'Documents and Settings')):
                 self.installed_os = "MS Windows 2000/XP"
@@ -93,24 +104,28 @@ class partition:
         if self.installed_os is None and self.mountpoint:
             return 0
         if self.installed_os.find('XP') >= 0:
+            # Usuarios de Windows XP
             documents = os.listdir(os.path.join(self.mountpoint, "Documents and Settings"))
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Documents and Settings', d)
                 if (not d in excluir) and (os.path.exists(os.path.join(ruta, 'NTUSER.DAT')) or os.path.exists(os.path.join(ruta, 'ntuser.dat'))):
                     self.users_path.append(ruta)
         elif self.installed_os.find('Vista') >= 0:
+            # Usuarios de Windows Vista
             documents = os.listdir(os.path.join(self.mountpoint, "Users"))
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Users', d)
                 if (not d in excluir) and (os.path.exists(os.path.join(ruta, 'NTUSER.DAT')) or os.path.exists(os.path.join(ruta, 'ntuser.dat'))):
                     self.users_path.append(ruta)
         elif self.installed_os.find('Apple Mac') >= 0:
+            # Usuarios de Mac
             documents = os.listdir(os.path.join(self.mountpoint, "Users"))
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Users', d)
                 if (not d in excluir) and not d.startswith('.'):
                     self.users_path.append(ruta)
         elif self.installed_os.find('Unix/Linux') >= 0:
+            # Usuarios de Unix/Linux
             documents = os.listdir(self.mountpoint)
             for d in documents:
                 ruta = os.path.join(self.mountpoint, d)
@@ -137,7 +152,13 @@ class pc:
 
 
     def get_devices(self, fs = []):
-        """Busca todas las particiones del equipo"""
+        """Busca las particiones del equipo que contengan el sistema
+        de ficheros especificado. Por defecto busca todas las disponibles
+        
+        Argumentos de entrada:
+        fs -- lista con los sistemas de ficheros a buscar (default [])
+        
+        """
         r = {}
         udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
         for u in udi_list.splitlines():
@@ -158,14 +179,14 @@ class pc:
         return r
 
     def check_all_partitions(self):
-        """Comprueba las particiones"""
+        """Comprueba todas las particiones previamente detectadas"""
         print "Comprobando particiones..."
         for p in self.partitions:
             p.check()
             print unicode(p)
 
     def error(self, e):
-        """Almacena los errores en tiempo de ejecución"""
+        """Almacena los errores en tiempo de ejecución  OBSOLETO """
         self.errors.append(e)
 
     def get_win_users(self):
@@ -185,7 +206,7 @@ class pc:
         return self.lin_users
 
     def get_mac_users(self):
-        """Devuelve una lista con la ruta a las carpetas de los usuarios de Machintosh"""
+        """Devuelve una lista con la ruta a las carpetas de los usuarios de Mac OS"""
         for p in self.partitions:
             if p.installed_os and p.installed_os.find('Mac') > 0:
                 for path in p.users_path:
@@ -202,8 +223,13 @@ class pc:
         return r
 
     def map_win_units(self, dpaths):
-        """Asocia los puntos de montaje de Linux con la asiganción de unidades de Windows.
-        Recibe información obtenida del registro"""
+        """Devuelve un diccionario que asocia los puntos de montaje de 
+        Linux con la asignación de unidades de Windows.
+        
+        Argumentos de entrada:
+        dpaths -- diccionario con las rutas de carpetas de Windows
+        
+        """
         units = {}
         wp = self.get_windows()
 

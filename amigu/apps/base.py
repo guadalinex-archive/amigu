@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 import uuid
 import sys
 import traceback
@@ -6,8 +7,16 @@ import gtk
 from amigu import _
 
 class application:
-
+    """Clase abstracta el manejo de aplicaciones y opciones de migración"""
+    
     def __init__(self, user, option = None):
+        """Constructor de la clase.
+        
+        Argumentos de entrada:
+        user -- objeto de tipo Generic_usr
+        option -- opción especifica de la aplicación que implemente la clase (default None)
+        
+        """
         self.user = user
         self.id = str(uuid.uuid4())
         self.os = user.os
@@ -27,10 +36,20 @@ class application:
         self.error = ''
 
     def initialize(self):
-        print _("Desktop")
+        """Método abstracto para que las clases hijas personalicen la 
+        aplicación
+        
+        """
         pass
 
     def run(self, model=None, iter=None):
+        """Ejecuta la tarea y controla su resultado.
+        
+        Argumentos de entrada:
+        model -- objeto de tipo gtk.TreeModel obtenido del arbol de opciones
+        iter -- objeto de tipo gtk.TreeIter obtenido del arbol de opciones
+        
+        """
         self.model = model
         self.iter = iter
         self.status = -1
@@ -44,9 +63,21 @@ class application:
 
 
     def do(self):
+        """Método abstracto para que las clases hijas implementen 
+        el proceso de migración/importación.
+        
+        """
         pass
         
     def update_progress(self, value = 0, delta=0):
+        """Actualiza la barra de progreso asociada a la tarea en con un 
+        valor concreto o con un incremento relativo. Sólo válido para 
+        la interfaz gráfica de Amigu
+        
+        Argumentos de entrada:
+        value -- nuevo valor de la barra de progreso (default 0)
+        delta -- nuevo incremento de la barra de progreso (default 0)
+        """
         try:
             gtk.gdk.threads_enter()
             if value: self.model.set_value(self.iter, 2, value)

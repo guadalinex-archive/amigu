@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import os, re, random, time, shutil
+import os
+import re
+import random
+import time
+import shutil
 import commands
 import glob
 from amigu import _
@@ -15,12 +19,17 @@ __DIR_DBX2MBX__="/usr/bin"
 
 
 class mailconfig:
-    """Clase para las configuraciones de correo.
+    """Clase para el manejo de configuraciones de correo.
     Visit http://msdn2.microsoft.com/en-us/library/ms715237.aspx for more information about the values"""
 
     def __init__(self, config):
         """Constructor de la clase.
-        Recibe la configuración obtenida del registro"""
+        
+        Argumentos de entrada:
+        config -- puede ser un diccionario que contenga información sobre
+        una cuenta de correo o un archivo xml de Windows Live Mail
+        
+        """
         if isinstance(config, dict):
             self.c = config
         elif os.path.exists(config):
@@ -45,7 +54,7 @@ class mailconfig:
         return t
 
     def get_user_name(self):
-        """Devuelve el nombre del usuario"""
+        """Devuelve el nombre del usuario de la cuenta"""
         if self.get_type() == "imap":
             if 'IMAP User Name' in self.c.keys():
                 r = self.c['IMAP User Name']
@@ -187,6 +196,11 @@ class mailconfig:
         return r
         
     def readconfig_wm(self, config):
+        """Lee la configuación de correo de Windows Mail
+        
+        Argumentos de entrada:
+        config -- archivo XML de configuración de Windows Mail
+        """
         c = {}
         xmldoc = minidom.parse(config)
         for node in xmldoc.firstChild.childNodes:
@@ -194,15 +208,17 @@ class mailconfig:
                 c[node.tagName.replace('_',' ')] = node.firstChild.data
         return c
         
-    
-            
 # end class mail
 
 ############################################################################
 
 class mailreader(application):
+    """Clase para el manejo de aplicaciones de correo"""
     
     def initialize(self):
+        """Inicializa los valores específicos de la aplicación.
+        Este método debe ser apliado en las clases hijas
+        """
         self.name = _("Lector de correo")
         self.size = 0
         self.mailconfigs = []
@@ -211,9 +227,20 @@ class mailreader(application):
         self.description = self.name +": %d"%len(self.mailconfigs)+ _("cuentas de correo")
         
     def get_configuration(self):
-       pass
+        """Método abstracto para obtener la configuración de la aplicación
+        de correo
+        
+        """
+        pass
 
     def do(self):
+        """Ejecuta el proceso de migración basado en importar las cuentas
+        de correo, los correos almacenados, los contactos y el calendario
+        en caso de que la apliación disponga de él.
+        
+        Devuelve 1 en caso que el proceso finalice sin errores.
+        
+        """
         self.update_progress(5.0)
         self.import_accounts()
         self.import_mails()
@@ -224,29 +251,47 @@ class mailreader(application):
         return 1
 
     def import_mails(self):
+        """Importa los correos almacenados"""
         self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
         for mb in self.mailboxes:
             self.convert_mailbox(mb)
             self.update_progress(delta=30.0/len(self.mailconfigs))
             
     def convert_mailbox(self, mb):
+        """Método abstracto para convertir los correos de la apliación 
+        al formato mailbox de Evolution
+        
+        Argumentos de entrada:
+        mb -- carpeta o fichero que contengan correos
+        """
+        
         pass
 
     def import_accounts(self):
+        """Configura las cuentas de correo de la aplicación para que 
+        puedan ser usadas en Evolution y Thunderbird
+        
+        """
         for a in self.mailconfigs:
             self.config_EVOLUTION(a)
             self.config_THUNDERBIRD(a)
             self.update_progress(delta=45.0/len(self.mailboxes))
         
     def import_calendar(self):
+        """Importa el calendario de la aplicación"""
         self.config_EVOLUTION_calendar()
         
     def import_contacts(self):
+        """Importa la libreta de contactos de la aplicación"""
         self.config_EVOLUTION_addressbook()
 
     def config_EVOLUTION(self, a):
-        """Configura la cuenta dada en Evolution"""
+        """Configura la cuenta dada en Evolution
         
+        Argumentos de entrada:
+        a -- objeto de tipo Mailconfig
+        
+        """
         #a = self.mailconfig
         ssl = a.use_SSL() and 'always' or 'never'
         smtpssl = a.use_SMTP_SSL() and 'always' or 'never'
@@ -309,6 +354,7 @@ class mailreader(application):
                 self.errors += "Evolution configuration is not writable"
     
     def config_EVOLUTION_calendar(self):
+        """Convierte e integra el calendario en Evolution"""
         vcal = os.path.join(self.dest.path, _("Calendario"))
         old = None
         dates = []
@@ -358,7 +404,10 @@ class mailreader(application):
             os.remove(vcal)
                 
     def config_EVOLUTION_addressbook(self):
-        """Lee los contactos alamcenados en Evolution"""
+        """Convierte e integra los contactos en la libreta de direcciones
+        de Evolution
+        
+        """
         vcard = os.path.join(self.dest.path, _("Contactos"))
         if os.path.exists(vcard):
             import bsddb
@@ -387,6 +436,12 @@ class mailreader(application):
             os.remove(vcard)
     
     def config_THUNDERBIRD(self, a):
+        """Configura la cuenta dada en Mozilla Thunderbird
+        
+        Argumentos de entrada:
+        a -- objeto de tipo Mailconfig
+        
+        """
         th = thunderbird()
         try:
             th.config_account(a)
@@ -395,9 +450,10 @@ class mailreader(application):
 
 
 class outlook12(mailreader):
+    """Clase para el manejo de Office 2007 (versión 12)"""
     
     def initialize(self):
-        
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -454,7 +510,7 @@ class outlook12(mailreader):
 class outlook11(mailreader):
     
     def initialize(self):
-
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -505,7 +561,7 @@ class outlook11(mailreader):
 class outlook9(mailreader):
     
     def initialize(self):
-
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -549,7 +605,7 @@ class outlook9(mailreader):
 class outlook_express(mailreader):
     
     def initialize(self):
-        
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -597,7 +653,7 @@ class outlook_express(mailreader):
 class windowsmail(mailreader):
     
     def initialize(self):
-
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -637,7 +693,7 @@ class windowsmail(mailreader):
 class windowslivemail(windowsmail):
     
     def initialize(self):
-
+        """Inicializa los valores específicos de la aplicación."""
         self.size = 0
         self.mailconfigs = []
         self.mailboxes = []
@@ -653,6 +709,7 @@ class windowslivemail(windowsmail):
 class winthunderbird(mailreader):
     
     def initialize(self):
+        """Inicializa los valores específicos de la aplicación."""
         self.name = _("Mozilla Thunderbird")
         self.mailboxes = []
         self.size = 0
@@ -791,7 +848,7 @@ def eml2mbox(emlpath, mbxpath):
                         i += 1
                         break
     d.close()
-    print "Carpeta %s: %d archivos procesados" % (os.path.dirname(emlpath), i)
+    print "Carpeta %s: %d archivos procesados" % (os.path.basename(emlpath), i)
 
        
 

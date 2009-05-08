@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-# La clase registry permite acceder a la información contenida en el registro de Windows.
-# La compatibilidad con los registros de Windows viene dada por el programa 'dumphive'
-# que convierte el contenido del registro en un fichero de texto plano.
-# Se añaden funcionalidades para buscar claves prefijadas dentro del registro de usuario
-# o NTUSER.DAT asi cómo la función genérica de buscar cualquier entrada del registro.
+
 import os
 import re
 import glob
@@ -17,30 +13,36 @@ from gtk import TreeStore
 
 
 class winuser(regedit, generic_usr):
-    """Clase para los usuarios de Windows"""
+    """Clase para el manejo de usuarios de Windows.
+    Hereda de las clases Generic_usr y Regedit.
+        
+    """
 
     def __init__(self, dir, pc, ops):
         """Constructor de la clase.
-        Recibe la ruta a la carpeta del usuario de Windows"""
+        
+        Argumentos de entrada:
+        dir  -- directorio raíz del usuario
+        pc -- objeto de la clase PC
+        ops -- sistema operativo al que pertence el usuario
+        
+        """
         regedit.__init__(self, dir)
         generic_usr.__init__(self, dir, pc, ops)
 
 
-    def init_apps(self):
-        pass
-
     def get_copier(self, folder):
+        """Devuelve un objeto de tipo Copier para copiar una carpeta
+        
+        Argumentos de entrada:
+        folder -- objeto de tipo Folder de la carpeta a copiar
+        
+        """
         return copier(self, folder)
 
-    def get_path(self):
-        """Devuelve la carpeta del usuario"""
-        return self.path
-
-    def get_personal_folder(self):
-        """Devuelve las carpetas personales y de configuración del usuario"""
-        return self.folders['Personal']
 
     def get_avatar(self):
+        """ Devuelve la imagen del usuario. Disponible a partir de XP"""
         if os.path.exists(os.path.join(self.folders["Local AppData"].path,'Temp',self.name+".bmp")):
             return os.path.join(self.folders["Local AppData"].path,'Temp',self.name+".bmp")
         elif os.path.exists(os.path.join(self.folders["AppData"].path.replace(self.name, 'All Users'), 'Microsoft', 'User Account Pictures', self.name+".bmp")):
@@ -48,9 +50,6 @@ class winuser(regedit, generic_usr):
         else:
             return "/usr/share/pixmaps/nobody.png"
 
-    def get_name(self):
-        """Devuelve el nombre del usuario de Windows"""
-        return self.name
 
     def get_AOL_accounts(self):
         """Devuelve una lista con los usuarios de AOL Instant Messenger"""
@@ -66,6 +65,12 @@ class winuser(regedit, generic_usr):
             return 0
 
     def get_OUTLOOK_accounts(self):
+        """Devuelve un dicccionario con los las claves del registro que
+        contienen la configuración de correo de Outlook. 
+        Compatible con Outlook desde la versión 9 a la 12 y con Outlook
+        Express 6
+        
+        """
         claves = {"Outlook9":[], "Outlook Express":[], "Outlook11":[], "Outlook12":[]}
         ou11 = re.compile(r'\[NTUSER\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows Messaging Subsystem\\Profiles\\.*Outlook.*\\\w+\\\d+')
         ou12 = re.compile(r'\\Software\\Microsoft\\Windows NT\\CurrentVersion\\Windows Messaging Subsystem\\Profiles\\Outlook\\\w+\\\d+')
@@ -90,6 +95,10 @@ class winuser(regedit, generic_usr):
             return claves
 
     def get_WINDOWS_MAIL_accounts(self):
+        """Devuelve un dicccionario con los archivos que
+        contienen la configuración de correo de Windows Mail. 
+        
+        """
         dict = {}
         ruta = os.path.join(self.folders["Local AppData"].path, 'Microsoft', 'Windows Mail')
         if os.path.exists(ruta):
@@ -100,6 +109,10 @@ class winuser(regedit, generic_usr):
         return dict
         
     def get_WINDOWS_LIVE_MAIL_accounts(self):
+        """Devuelve un dicccionario con los archivos que
+        contienen la configuración de correo de Windows Live Mail. 
+        
+        """
         dict = {}
         ruta = os.path.join(self.folders["Local AppData"].path, 'Microsoft', 'Windows Live Mail')
         if os.path.exists(ruta):
@@ -110,6 +123,9 @@ class winuser(regedit, generic_usr):
         return dict
         
     def get_THUNDERBIRD_accounts(self):
+        """Devuelve una lista con las cuentas de correo configuradas en 
+        Mozilla Thunderbird
+        """
         prefs = self.get_THUNDERBIRD_prefs()
         try:
             p = open(prefs, 'r')
@@ -124,14 +140,14 @@ class winuser(regedit, generic_usr):
                 if m:
                     return m.group('accounts').split(',')
                 
-            
     def get_THUNDERBIRD_prefs(self):
+        """Devuelve el archivo de configuración de Mozilla Thunderbird"""
         prefs = glob.glob(os.path.join(self.folders["AppData"].path, 'Thunderbird', 'Profiles', '*.default', 'prefs.js'))
         if prefs:
             return prefs[0]
 
     def get_MSN_account(self):
-        """Devuelve la cuenta asociada a MSNMessenger"""
+        """Devuelve la cuenta asociada a MSN Messenger"""
         r = self.search_key("Software\Microsoft\MSNMessenger")
         try:
             return r["User .NET Messenger Service"]
@@ -147,6 +163,13 @@ class winuser(regedit, generic_usr):
             return 0
 
     def check_path(self, path):
+        """Devuelve la ruta real accesible desde Linux de la ruta completa 
+        de la carpeta respecto a Windows
+        
+        Argumentos de entrada:
+        path -- ruta completa de una carpeta de Windows
+        
+        """
         i = path.find(':')
         path = path.replace(path[:i+1], self.mount_points[path[i-1:i+1]])
         path = path.replace('\\','/')
@@ -160,25 +183,20 @@ class winuser(regedit, generic_usr):
                 del r["!Do not use this registry key"]
             if self.os.find("Vista") > 1:
                 r["Downloads"] = os.path.join(os.path.split(r["Personal"])[0], "Downloads")
-            #print r
-            self.mount_points = pc.map_win_units(r)
-            #print "\nGetting shell folders..."
+                
+            self.mount_points = pc.map_win_units(r) # Obtener los puntos de montaje
+            
             for k, v in r.iteritems():
                 if v:
-                    unit = v[:2]
                     try:
                         if not k == 'Wallpaper':
-                            r[k] = folder(v.replace(unit, self.mount_points[unit]), False)
+                            r[k] = folder(self.check_path(v), False)
                             #print "%s: %s --> %s" % (k, v, r[k].path)
                         else:
-                            r[k] = v.replace(unit, self.mount_points[unit])
+                            r[k] = self.check_path(v)
                             #print "%s: %s --> %s" % (k, v, r[k])
-
                     except:
-                        r = 0
-                        print "Unknown partition: %s" % unit
-                        break
-            print "\n"
+                        pass
             return r
         else:
             raise Exception("Error reading de registry")
@@ -195,6 +213,9 @@ class winuser(regedit, generic_usr):
         return accounts
 
     def get_details(self):
+        """Devuelve información sobre el usuario        OBSOLETO
+        
+        """
         size = "0Mb"
         if self.os.find("XP") > 1:
             size = "%.2fMb" % (self.folders['Personal'].get_size()/1024.0)
@@ -209,14 +230,15 @@ class winuser(regedit, generic_usr):
         """Devuelve la información de archivos y programas del usuario"""
         pass
 
-    def all_errors(self):
-        """Recopila los errores producidos en tiempo de ejecuccion"""
-        self.errors = self.errors + self.gaim.errors + self.firefox.errors + self.thunderbird.errors
-        return self.errors
 
     def get_tree_options(self, update=False):
-        """Genera el árbol de opciones para el usario seleccionado"""
-
+        """Devuele el árbol de opciones generado para el usario seleccionado.
+        El objeto devuelto es de tipo gtk.TreeStore.
+        
+        Argumentos de entrada:
+        update -- indica si se debe actualizar el contenido del árbol (default False)
+        
+        """
         if self.tree_options:
             if update:
                 self.tree_options.clear()
@@ -240,7 +262,7 @@ class winuser(regedit, generic_usr):
             folder_2_copy.append(self.folders['Personal'])
             folder_2_copy.append(self.folders['Desktop'])
 
-            # eMule
+        # eMule
         if 'eMule' in self.folders.keys():
             emule_inc = self.get_incoming_path()
             emule_temp = self.get_temp_path()
@@ -312,14 +334,12 @@ class winuser(regedit, generic_usr):
             for l in lectores:
                 self.tree_options.append(lec, [l.name, None, l.size, l.description, l] )
 
-
         # Instant Messenger
         cuentas = messenger.get_IM_accounts(self)
         if cuentas:
             im = self.tree_options.append(conf, [_("Mensajería Instantánea"), None, None, _('Cuentas de IM'), None] )
         for a in cuentas:
             self.tree_options.append(im, [a.name, None, a.size, a.description, a] )
-
 
         # Otras configuraciones
         configuraciones = []
@@ -353,9 +373,8 @@ class winuser(regedit, generic_usr):
             for c in configuraciones:
                 self.tree_options.append(cfg, [c.name, None, c.size, c.description, c] )
 
-
         return self.tree_options
-#end class user
+#end class win_user
 
 
 ############################################################################

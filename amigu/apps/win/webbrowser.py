@@ -246,7 +246,8 @@ class winfirefox(webbrowser):
                 self.get_bookmarks(tree, folder, [f for f in marks_list if f[2] == e[1]])
             elif e[0]==1:
                 # caso base
-                mark = tree.append(iter, [e[4], e[5]])
+                if e[4].count('/') < 3:
+                    mark = tree.append(iter, [e[4], e[5]])
                 #print '\t' + e[4], e[5]
 
     def migrate2firefox(self):
@@ -313,23 +314,19 @@ class opera(webbrowser):
         file = os.path.join(self.user.folders['AppData'].path, 'Opera', 'Opera', 'profile', 'opera6.adr')
         links = []
         marks = open(file,'r')
-        hotlist = marks.read().split('#')
+        hotlist = marks.read().split('\r\n\r\n')
         marks.close()
         for h in hotlist:
             valid = True
             e = h.split('\r\n')
-            if e[0]=="FOLDER":
-                for d in e:
-                    if d.find("TRASH") >= 0:
-                        valid = False
-                        break
+            if e[0]=="#FOLDER":
                 if valid:
                     links.append([e[0],e[2].replace('\t','')[5:], None])
-            elif e[0]=="URL":
+            elif e[0]=="#URL":
                 name=e[2].replace('\t','')[5:]
                 url=e[3].replace('\t','')[4:]
                 links.append([e[0],name, url])
-            elif e[0]=="SEPARATOR":
+            elif e[0]=='-':
                 links.append([e[0], None, None])
         return links
 
@@ -345,14 +342,14 @@ class opera(webbrowser):
         """Devuelve una lista con los Marcadores de Opera"""
         while opera_links:
             e = opera_links.pop(0)
-            if e[0]=="FOLDER":
+            if e[0]=="#FOLDER":
                 folder = tree.append(iter, [e[1],None])
                 #print e[1]
                 self.get_bookmarks(tree, folder, opera_links)
-            elif e[0]=="URL":
+            elif e[0]=="#URL":
                 folder = tree.append(iter, [e[1],e[2]])
                 #print '\t', e[1],e[2]
-            elif e[0]=="SEPARATOR":
+            elif e[0]=='-':
                 break
         return tree
 
