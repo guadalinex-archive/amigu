@@ -3,7 +3,16 @@
 
 import pygtk
 pygtk.require('2.0')
-import sys, os, re, gobject, gtk, time, threading,  traceback, syslog, shutil
+import sys
+import os
+import re
+import gobject
+import gtk
+import time
+import threading
+import traceback
+import syslog
+import shutil
 from amigu import __version__ as ver
 from amigu import _
 from amigu.apps.win import mail, webbrowser, messenger, settings
@@ -19,7 +28,6 @@ dir_imagenes = "/usr/share/pixmaps/amigu"
 #Initializing the gtk's thread engine
 gtk.gdk.threads_init()
 version = "AMIGU " + ver
-#ver = "0.7"
 
 
 class Asistente:

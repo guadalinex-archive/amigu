@@ -4,13 +4,21 @@
 # Permite le uso de objetos de tipo 'folder' para simplificar y agilizar
 # el manejo de las carpetas
 
-import os, re, shutil
+import os
+import re
+import shutil
 from os.path import isdir, isfile, exists, split, basename, dirname, splitext, join
 from amigu.apps.base import application
 from amigu import _
 
 def backup(file):
-    """Crea una copia de respaldo del archivo que se le indica"""
+    """Crea una copia de respaldo del archivo que se le indica.
+    Devuelve el nombre del fichero creado.
+    
+    Argumentos de entrada:
+    file -> ruta del archivo
+    
+    """
     if exists(file):
         try:
             progress('Doing backup of ' + file)
@@ -21,7 +29,12 @@ def backup(file):
 
 
 def restore_backup(backup):
-    """Restaura la copia de respaldo del archivo que se le indica"""
+    """Restaura la copia de respaldo del archivo que se le indica
+    
+    Argumentos de entrada:
+    backup -> ruta de la copia de respaldo
+    
+    """
     if exists(backup):
         try:
             progress('Restoring backup of ' + backup[:-4])
@@ -31,6 +44,13 @@ def restore_backup(backup):
             error("Can't restore backup %s: %s" % (backup, str(why)))
 
 def odf_converter(file, format = 'pdf'):
+    """Convierte el fichero recibido a formato compatible con OpenOffice.org
+    
+    Argumentos de entrada:
+    file -> ruta del fichero
+    format -> tipo de formato de salida (default "pdf")
+    
+    """
     try:
         os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
     except:
@@ -83,7 +103,12 @@ class folder:
 
     def __init__(self, path, create = True):
         """Constructor de la clase.
-        Recibe una ruta y si no existe la crea"""
+        
+        Argumentos de entrada:
+        path -> ruta de la carpeta
+        create -> indica si se debe crear la carpeta (default True)
+        
+        """
         self.errors = []
         self.path = None
         if exists(path) and isdir(path):
@@ -97,6 +122,7 @@ class folder:
             #self.path = path
 
     def get_name(self):
+        """Devuelve el nombre de la carpeta"""
         name = basename(self.path)
         if name in self.prefolders:
             name = self.prefolders[name]
@@ -142,11 +168,13 @@ class folder:
             return 0
 
     def count_files(self):
+        """Devuelve el número de archivos que contiene la carpeta"""
         if self.files is None:
             self.files = self.count(self.path, 0, 0)[1]
         return self.files
 
     def count_dirs(self):
+        """Devuelve el número de carpetas que contiene la carpeta"""
         if self.dirs is None:
             self.dirs = self.count(self.path, 0, 0)[0]
         return self.dirs
@@ -176,7 +204,18 @@ class folder:
             return int(disc_avail)
 
     def copy(self, destino, extension = None, convert = True, exclude = ['.lnk',], function = None, delta = 0):
-        """Copia solo los archivos de la ruta origen que tienen la misma extension que la especificada en la lista de 'extensiones'"""
+        """Copia solo los archivos de la ruta origen que tienen la misma 
+        extension que la especificada en la lista de 'extensiones'
+        
+        Argumentos de entrada:
+        destino -> destino de la copia
+        extension -> lista con las extensiones de los ficheros a copiar (default None)
+        convert -> indica se debe convertir ficheros a equivalentes libres (defualt True)
+        exclude -> lista con las extensiones de los ficheros excluidos (default ['.lnk'])
+        function -> función encargada del indicar el progreso de la copia (default None)
+        delta -> incremento de progreso por cada archivo copiado (default 0)
+        
+        """
         if not isinstance(destino, folder):
             destino = folder(join(destino, self.get_name()))
         for e in os.listdir(self.path):
@@ -214,6 +253,7 @@ class folder:
                 self.error('Failed Stat over ' + e)
 
     def get_subfolders(self):
+        """Devuelve una lista con las subcarpetas"""
         for e in os.listdir(self.path):
             ruta = join(self.path, e)
             try:
@@ -223,7 +263,12 @@ class folder:
                 pass
 
     def search_by_ext(self, extension):
-        """Devuelve una lista de archivos que cumplen con la extension dada"""
+        """Devuelve una lista de archivos que cumplen con la extension dada
+        
+        Argumentos de entrada:
+        extension -> extensión para el filtrado de los ficheros
+        
+        """
         found = []
         for e in os.listdir(self.path):
             ruta = join(self.path, e)
@@ -247,7 +292,12 @@ class folder:
         return found
 
     def create_folder(self, path):
-        """Crea la carpeta"""
+        """Crea la carpeta
+        
+        Argumentos de entrada:
+        path -> ruta de la carpeta a crear
+        
+        """
         try:
             os.makedirs(path)
             return path
@@ -262,7 +312,12 @@ class folder:
                 self.error ('Ruta no valida: ' + join(path, folder))
 
     def create_subfolder(self, subfolder):
-        """Crea una subcarpeta en la ruta del objeto"""
+        """Crea una subcarpeta en la ruta del objeto
+        
+        Argumentos de entrada:
+        subfolder -> nombre de la subcarpeta a crear
+        
+        """
         try:
             os.makedirs(join(self.path, subfolder.replace(' ','\ ')))
             return join(self.path, subfolder)
@@ -279,8 +334,10 @@ class folder:
 
 
 class copier(application):
+    """Clase para el manejo de importación de archivos"""
     
     def initialize(self):
+        """Inicializa los parametros específicos de la aplicación"""
 
         self.name = self.option.get_name()
         self.size = self.option.get_size()
@@ -292,12 +349,19 @@ class copier(application):
         self.description = _("Carpeta") + " '%s': %d " % (self.name, self.files) + _("archivos")
 
     def set_destination(self, dest):
+        """Establece el destino de la copia.
+        
+        Argumentos de entrada:
+        dest -> destino de la copia, puede ser una ruta o un objeto de tipo 'folder'
+        
+        """
         if type(dest) == folder:
             self.destination = dest.path
         elif exists(dest) and isdir(dest):
             self.destination = dest
 
     def do(self):
+        """Realiza el proceso de importación"""
         self.option.errors = []
         inc = 0
         if self.model:

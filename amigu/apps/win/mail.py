@@ -473,6 +473,7 @@ class outlook12(mailreader):
 
 
     def get_configuration(self):
+        """Devuelve la configuración de la aplicación de correo"""
         configs = []
         for key in self.option:
             r = self.user.search_key(key)
@@ -501,6 +502,12 @@ class outlook12(mailreader):
         return configs
 
     def convert_mailbox(self, mb):
+        """Convierte los correos al formato Mailbox.
+        
+        Argumentos de entrada:
+        mb -> fichero que contiene los correos de la aplicación
+        
+        """
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
         com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
         os.system(com)
@@ -528,6 +535,7 @@ class outlook11(mailreader):
             self.size = os.path.getsize(mb)/1024
 
     def get_configuration(self):
+        """Devuelve la configuración de la aplicación de correo"""
         configs = []
         for key in self.option:
             r = self.user.search_key(key)
@@ -553,6 +561,12 @@ class outlook11(mailreader):
         return configs
 
     def convert_mailbox(self, mb):
+        """Convierte los correos al formato Mailbox.
+        
+        Argumentos de entrada:
+        mb -> fichero que contiene los correos de la aplicación
+        
+        """        
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
         com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
         os.system(com)
@@ -580,6 +594,7 @@ class outlook9(mailreader):
             raise Exception
 
     def get_configuration(self):
+        """Devuelve la configuración de la aplicación de correo"""
         configs = []
         for key in self.option:
             r = self.user.search_key(key)
@@ -597,6 +612,12 @@ class outlook9(mailreader):
         return configs
 
     def convert_mailbox(self, mb):
+        """Convierte los correos al formato Mailbox.
+        
+        Argumentos de entrada:
+        mb -> fichero que contiene los correos de la aplicación
+        
+        """
         readpst = os.path.join(__DIR_PST2MBX__,'readpst')
         com = '%s -w %s -o %s' % (readpst, mb.replace(' ',"\ "), self.dest.path.replace(' ',"\ "))
         os.system(com)
@@ -619,6 +640,7 @@ class outlook_express(mailreader):
             raise Exception
 
     def get_configuration(self):
+        """Devuelve la configuración de la aplicación de correo"""
         configs = []
         for key in self.option:
             r = self.user.search_key(key)
@@ -635,6 +657,12 @@ class outlook_express(mailreader):
         return configs
 
     def convert_mailbox(self, mb):
+        """Convierte los correos al formato Mailbox.
+        
+        Argumentos de entrada:
+        mb -> fichero que contiene los correos de la aplicación
+        
+        """
         readdbx = os.path.join(__DIR_DBX2MBX__,'readoe')
         output = self.dest.path
         com = '%s -i %s -o %s' % (readdbx, mb.path.replace(' ',"\ "), output.replace(' ','\ '))
@@ -668,6 +696,7 @@ class windowsmail(mailreader):
 
 
     def get_configuration(self):
+        """Devuelve la configuración de la aplicación de correo"""
         configs = []
         for key in self.option:
             try:
@@ -682,6 +711,12 @@ class windowsmail(mailreader):
         return configs
 
     def convert_mailbox(self, mb):
+        """Convierte los correos al formato Mailbox.
+        
+        Argumentos de entrada:
+        mb -> fichero que contiene los correos de la aplicación
+        
+        """
         eml2mbox(mb.path, os.path.join(self.dest.path, mb.path.split('/')[-1]))
         
     def import_calendar(self):
@@ -722,6 +757,7 @@ class winthunderbird(mailreader):
             raise Exception
 
     def get_configuration(self):
+        """Devuelve la configuración asociada a la aplicación"""
         prefs = self.user.get_THUNDERBIRD_prefs()
         p = open(prefs, 'r')
         content = p.readlines()
@@ -765,7 +801,12 @@ class winthunderbird(mailreader):
         return configs
         
     def check_config(self, c):
-
+        """Comprueba que la configuración de la cuenta está completa
+        
+        Argumentos de entrada:
+        c -> objeto de tipo Mailconfig
+        
+        """
         c[c['type'].upper()+' Server'] = c['hostname']
         c[c['type'].upper()+' User Name'] = c['userName']
         if 'port' in c.keys(): c[c['type'].upper()+' Port']=eval(c['port'])
@@ -791,6 +832,7 @@ class winthunderbird(mailreader):
         return c
         
     def import_mails(self):
+        """Convierte los correos al formato Mailbox."""
         self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
         self.mb_dir.copy(self.dest.path, exclude=['.dat','.msf'])
         
@@ -816,6 +858,13 @@ def hex2str(hexa):
     return binascii.unhexlify(hexa)
       
 def eml2mbox(emlpath, mbxpath):
+    """Convierte archivos .eml a formato mailbox
+    
+    Argumentos de entrada:
+    emlpath -> ruta donde residen los archivos eml
+    mbxpath -> ruta de destino de los archivos mailbox
+    
+    """
     i = 0
     pattern = re.compile('(?P<date>Date:)\s+(?P<day>\w{3})\s+(?P<number>\d{1,2})\s+(?P<month>\w{3})\s+(?P<year>\d{4})\s+(?P<hour>[\d:]{5,8}).+')
     try:
@@ -1011,6 +1060,7 @@ class thunderbird:
         return self.get_thunderbird_profile(os.path.join(AppData.path, 'Thunderbird'))
 
     def generate_impab(self, l):
+        """Inserta el contacto en la libreta de direcciones de Thunderbird"""
         try:
             backup(os.path.join(self.profile,'impab.mab'))
             f = open(os.path.join(self.profile,'impab.mab'),'w')
@@ -1039,6 +1089,7 @@ class thunderbird:
             return 1
 
     def add_impab(self):
+        """Añade la libreta de direcciones importada a Thunderbird"""
         p = None
         if os.path.exists(self.config_file):
             bak = backup (self.config_file)

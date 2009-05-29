@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # Este módulo aporta rutinas para configurar los clientes de mensajería instantánea:
-#  - Gaim
+#  - Pidgin
 #  - Kopete
 #  - aMSN
 # Tanto en las clases Gaim como Kopete se permite la configuración de multiples protocolos como:
@@ -8,7 +8,8 @@
 #  - Yahoo!
 #  - Gtalk (basado en Jabber)
 
-import os, re
+import os
+import re
 from amigu.util.folder import *
 from amigu.apps.base import application
 from amigu import _
@@ -24,6 +25,7 @@ class w_live_id(application):
     """
 
     def initialize(self):
+        """Personaliza los parámetro de la aplicación"""
         if not self.option:
             raise Exception
         self.name = self.option
@@ -31,6 +33,7 @@ class w_live_id(application):
         self.size = 1
 
     def do(self):
+        """Realiza el proceso de importación a Pidgin, Kopete y amsn"""
         self.update_progress(5.0)
         pidgin = gaim()
         self.update_progress(20.0)
@@ -46,12 +49,10 @@ class w_live_id(application):
 
 
 class gtalk(application):
-    """Clase para el manejo de cuentas de mensajería instantánea de Google
-        Programas:
-         * Gtalk
-    """
+    """Clase para el manejo de cuentas de mensajería instantánea de Google Gtalk"""
 
     def initialize(self):
+        """Personaliza los parámetros de la aplicación"""
         self.option = self.user.get_GTALK_account()
         if not self.option:
             raise Exception
@@ -61,6 +62,12 @@ class gtalk(application):
 
 
     def do(self, option=None):
+        """Realiza el proceso de importación a Pidgin y Kopete
+        
+        Argumentos de entrada:
+        option -> identificador de Google talk
+        
+        """
         pidgin = gaim()
         self.update_progress(20.0)
         kopte = kopete()
@@ -97,7 +104,12 @@ class gaim:
         self.errors.append(e)
 
     def config_msn(self, cuenta):
-        """Configura la cuenta de MSN"""
+        """Configura la cuenta de MSN
+        
+        Argumento de entrada:
+        cuenta -> identificador de cuenta
+        
+        """
         bak = backup(self.config_file)
         if bak:
             try:
@@ -131,7 +143,12 @@ class gaim:
             self.error("Config Gaim failed")
 
     def config_yahoo(self, cuenta):
-        """Configura la cuenta de Yahoo!"""
+        """Configura la cuenta de Yahoo!
+        
+        Argumento de entrada:
+        cuenta -> identificador de la cuenta de Yahoo!
+        
+        """
         bak = backup(self.config_file)
         if bak:
             try:
@@ -170,7 +187,12 @@ class gaim:
             self.error("Config Gaim failed")
 
     def config_gtalk (self, cuenta):
-        """Configura la cuenta de Gtalk"""
+        """Configura la cuenta de Gtalk
+        
+        Argumento de entrada:
+        cuenta -> identificador de la cuenta de Google Talk
+        
+        """
         bak = backup(self.config_file)
         if bak:
             try:
@@ -223,7 +245,12 @@ class kopete:
         self.errors.append(e)
 
     def config_msn(self, cuenta):
-        """Configura la cuenta de MSN"""
+        """Configura la cuenta de MSN
+        
+        Argumento de entrada:
+        cuenta -> identificador de cuenta de MSN
+        
+        """
         bak = backup(self.config_file)
         try:
             f = open (self.config_file, "a")
@@ -241,7 +268,12 @@ class kopete:
             restore_backup(bak)
 
     def config_yahoo(self, cuenta):
-        """Configura la cuenta de Yahoo!"""
+        """Configura la cuenta de Yahoo!
+        
+        Argumento de entrada:
+        cuenta -> identificador de cuenta de Yahoo!
+        
+        """
         bak = backup(self.config_file)
         try:
             f = open (self.config_file, "a")
@@ -258,7 +290,12 @@ class kopete:
             restore_backup(bak)
 
     def config_gtalk(self, cuenta):
-        """Configura la cuenta de Gtalk"""
+        """Configura la cuenta de Gtalk
+        
+        Argumento de entrada:
+        cuenta -> identificador de cuenta de Google Talk
+        
+        """
         bak = backup(self.config_file)
         try:
             f = open (self.config_file, "a")
@@ -284,7 +321,13 @@ class kopete:
 ############################################################################
 
 def msn2amsn(cuenta):
-    """Configura la cuenta de MSN que se le pasa en aMSN"""
+    """Configura las cuentas de amsn
+    
+    Argumento de entrada:
+    cuenta -> identificador de cuenta de MSN
+    
+    """
+    
     destino = folder(os.path.join(os.path.expanduser("~"),'.amsn'))
     if destino:
         if os.path.exists(os.path.join(destino.path, 'profiles')):
@@ -310,6 +353,13 @@ def msn2amsn(cuenta):
 
 
 def get_IM_accounts(user):
+    """Devuelve un listado de cuentas de mensajería instantánea usadas
+    en Windows
+    
+    Argumentos de entrada:
+    user -> objeto de tipo Winuser
+    
+    """
     accounts = []
     temp_accounts = []
     ac = user.get_MSN_account()

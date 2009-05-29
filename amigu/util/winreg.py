@@ -3,17 +3,24 @@
 # La compatibilidad con los registros de Windows viene dada por el programa 'dumphive'
 # que convierte el contenido del registro en un fichero de texto plano.
 # Se añade la función genérica de buscar cualquier entrada del registro.
-import os, codecs, tempfile
+import os
+import codecs
+import tempfile
 from folder import *
 
 class regedit:
     """Clase para el registro de Windows"""
+    
     __dumphive="/usr/bin/dumphive"
     #__dumphive="./bin/dumphive"
 
     def __init__(self, dir):
         """Constructor de la clase.
-        Recibe la ruta de un directorio que contenga un archivo del registro de Windows"""
+        
+        Argumentos de entrada:
+        dir -> ruta de un directorio que contenga un archivo del registro de Windows
+        
+        """
         self.tempreg = tempfile.mktemp()
         self.errors = []
         ntuser1 = os.path.join(dir, 'NTUSER.DAT')
@@ -45,8 +52,12 @@ class regedit:
         self.errors.append(e)
 
     def search_key(self, key):
-        """Busca la clave en el registro de Windows.
-        Devuelve un diccionario con los valores de la clave"""
+        """Devuelve un diccionario con el valor asociado a la clave del registro
+        
+        Argumentos de entrada:
+        key -> clave del registro de Windows
+        
+        """
         try:
             reg = codecs.open(self.tempreg, 'r', 'iso-8859-1')
         except:
