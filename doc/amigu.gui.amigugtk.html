@@ -1,0 +1,129 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module amigu.gui.amigugtk</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" /></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="amigu.html"><font color="#ffffff">amigu</font></a>.<a href="amigu.gui.html"><font color="#ffffff">gui</font></a>.amigugtk</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/fernando/amigu-0.7.3/amigu/gui/amigugtk.py">/home/fernando/amigu-0.7.3/amigu/gui/amigugtk.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="gobject.html">gobject</a><br>
+<a href="gtk.html">gtk</a><br>
+<a href="amigu.computer.users.macos.html">amigu.computer.users.macos</a><br>
+<a href="amigu.apps.win.mail.html">amigu.apps.win.mail</a><br>
+<a href="amigu.apps.win.messenger.html">amigu.apps.win.messenger</a><br>
+</td><td width="25%" valign=top><a href="amigu.computer.users.mswin.html">amigu.computer.users.mswin</a><br>
+<a href="amigu.computer.users.openos.html">amigu.computer.users.openos</a><br>
+<a href="os.html">os</a><br>
+<a href="pygtk.html">pygtk</a><br>
+<a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="amigu.apps.win.settings.html">amigu.apps.win.settings</a><br>
+<a href="shutil.html">shutil</a><br>
+<a href="sys.html">sys</a><br>
+<a href="syslog.html">syslog</a><br>
+<a href="threading.html">threading</a><br>
+</td><td width="25%" valign=top><a href="time.html">time</a><br>
+<a href="traceback.html">traceback</a><br>
+<a href="amigu.apps.win.webbrowser.html">amigu.apps.win.webbrowser</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="amigu.gui.amigugtk.html#Asistente">Asistente</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Asistente">class <strong>Asistente</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>GUI&nbsp;for&nbsp;AMIGU<br>
+Implementación&nbsp;del&nbsp;asistente&nbsp;de&nbsp;migración&nbsp;de&nbsp;Guadalinex&nbsp;sobre&nbsp;pygtk<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="Asistente-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;interfaz</tt></dd></dl>
+
+<dl><dt><a name="Asistente-about"><strong>about</strong></a>(self, widget)</dt></dl>
+
+<dl><dt><a name="Asistente-actualizar_espacio"><strong>actualizar_espacio</strong></a>(self, widget<font color="#909090">=None</font>)</dt><dd><tt>Actualiza&nbsp;el&nbsp;espacio&nbsp;libre&nbsp;en&nbsp;disco</tt></dd></dl>
+
+<dl><dt><a name="Asistente-aplicar"><strong>aplicar</strong></a>(self)</dt><dd><tt>Comienza&nbsp;el&nbsp;proceso&nbsp;de&nbsp;migración</tt></dd></dl>
+
+<dl><dt><a name="Asistente-buscar"><strong>buscar</strong></a>(self, widget)</dt><dd><tt>Muestra&nbsp;el&nbsp;cuadro&nbsp;diálogo&nbsp;para&nbsp;seleccionar&nbsp;la&nbsp;ubicación&nbsp;de&nbsp;destino&nbsp;de&nbsp;los&nbsp;archivos</tt></dd></dl>
+
+<dl><dt><a name="Asistente-buscar_usuarios"><strong>buscar_usuarios</strong></a>(self)</dt><dd><tt>Busca&nbsp;usuarios&nbsp;de&nbsp;otros&nbsp;sistemas&nbsp;en&nbsp;el&nbsp;ordenador</tt></dd></dl>
+
+<dl><dt><a name="Asistente-destroy"><strong>destroy</strong></a>(self, widget, data<font color="#909090">=None</font>)</dt><dd><tt>Finaliza&nbsp;la&nbsp;ejecución&nbsp;del&nbsp;asistente&nbsp;y&nbsp;limpiar&nbsp;los&nbsp;archivos&nbsp;temporales</tt></dd></dl>
+
+<dl><dt><a name="Asistente-dialogo_advertencia"><strong>dialogo_advertencia</strong></a>(self, mensaje<font color="#909090">=''</font>, progreso<font color="#909090">=False</font>)</dt><dd><tt>Muestra&nbsp;mensajes&nbsp;de&nbsp;aviso</tt></dd></dl>
+
+<dl><dt><a name="Asistente-dialogo_cancelacion"><strong>dialogo_cancelacion</strong></a>(self, widget)</dt><dd><tt>Muestra&nbsp;el&nbsp;cuadro&nbsp;diálogo&nbsp;de&nbsp;cancelación&nbsp;del&nbsp;proceso.</tt></dd></dl>
+
+<dl><dt><a name="Asistente-dialogo_confirmacion"><strong>dialogo_confirmacion</strong></a>(self, widget)</dt><dd><tt>Muestra&nbsp;el&nbsp;diálogo&nbsp;de&nbsp;confirmación&nbsp;antes&nbsp;de&nbsp;empezar&nbsp;la&nbsp;migración</tt></dd></dl>
+
+<dl><dt><a name="Asistente-etapa_anterior"><strong>etapa_anterior</strong></a>(self, widget)</dt><dd><tt>Muestra&nbsp;la&nbsp;etapa&nbsp;previa</tt></dd></dl>
+
+<dl><dt><a name="Asistente-etapa_siguiente"><strong>etapa_siguiente</strong></a>(self, widget)</dt><dd><tt>Muestra&nbsp;la&nbsp;siguiente&nbsp;etapa</tt></dd></dl>
+
+<dl><dt><a name="Asistente-excepthook"><strong>excepthook</strong></a>(self, exctype, excvalue, exctb)</dt><dd><tt>Manejador&nbsp;de&nbsp;excepciones</tt></dd></dl>
+
+<dl><dt><a name="Asistente-generar_resumen"><strong>generar_resumen</strong></a>(self, model)</dt><dd><tt>Genera&nbsp;el&nbsp;resumen&nbsp;de&nbsp;las&nbsp;tareas&nbsp;pendiente</tt></dd></dl>
+
+<dl><dt><a name="Asistente-insertar_usuario"><strong>insertar_usuario</strong></a>(self, u)</dt></dl>
+
+<dl><dt><a name="Asistente-italic"><strong>italic</strong></a>(self, treeviewcolumn, cell_renderer, model, iter)</dt></dl>
+
+<dl><dt><a name="Asistente-load_options"><strong>load_options</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Asistente-main"><strong>main</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Asistente-marcar_opcion"><strong>marcar_opcion</strong></a>(self, cell, path)</dt><dd><tt>Establece&nbsp;el&nbsp;estado&nbsp;marcado/desmarcado&nbsp;a&nbsp;las&nbsp;opciones&nbsp;de&nbsp;migración&nbsp;y&nbsp;sus&nbsp;descendientes</tt></dd></dl>
+
+<dl><dt><a name="Asistente-marcar_usuario"><strong>marcar_usuario</strong></a>(self, widget)</dt></dl>
+
+<dl><dt><a name="Asistente-mostrar_paso"><strong>mostrar_paso</strong></a>(self)</dt><dd><tt>Actualiza&nbsp;el&nbsp;contenido&nbsp;del&nbsp;asistente&nbsp;en&nbsp;función&nbsp;del&nbsp;paso&nbsp;actual</tt></dd></dl>
+
+<dl><dt><a name="Asistente-open_url"><strong>open_url</strong></a>(self, dialog, url, widget)</dt></dl>
+
+<dl><dt><a name="Asistente-pulse"><strong>pulse</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="Asistente-recorrer_arbol"><strong>recorrer_arbol</strong></a>(self, iterator, model, checked)</dt><dd><tt>Establece&nbsp;el&nbsp;valor&nbsp;marcado/desmarcado&nbsp;del&nbsp;padre&nbsp;a&nbsp;las&nbsp;opciones&nbsp;hijas</tt></dd></dl>
+
+<dl><dt><a name="Asistente-recorrer_tareas"><strong>recorrer_tareas</strong></a>(self, iterator, model)</dt></dl>
+
+<dl><dt><a name="Asistente-space_units"><strong>space_units</strong></a>(self, treeviewcolumn, cell_renderer, model, iter)</dt></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-run"><strong>run</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>dir_imagenes</strong> = '/usr/share/pixmaps/amigu'<br>
+<strong>ver</strong> = '0.7.3'<br>
+<strong>version</strong> = 'AMIGU 0.7.3'</td></tr></table>
+</body></html>

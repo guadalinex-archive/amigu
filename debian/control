@@ -1,0 +1,14 @@
+Source: amigu
+Section: utils
+Priority: extra
+Maintainer: Fernando Ruiz <fruiz@forja.guadalinex.org>
+Build-Depends: cdbs, debhelper (>= 7), python-central
+Standards-Version: 3.8.0
+Homepage: http://forja.guadalinex.org/amigu
+XS-Python-Version: all
+
+Package: amigu
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, gnome-mount, python-gtk2, unoconv, hal
+XS-Python-Version: ${python:Versions}
+Description: AMIGU es un asistente que le ayudara a importar sus archivos y configuraciones de Windows
