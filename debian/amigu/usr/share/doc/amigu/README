@@ -1,0 +1,67 @@
+AMIGU README
+Asistente a la MIgración de GUadalinex
+
+Versión Beta
+por Fernando Ruiz Humanes
+fruiz@forja.guadalinex.org
+
+Acerca de
+
+    El Asistente de Migración de Guadalinex es una aplicación escrita
+    en Python que permite importar datos de usuarios y configuraciones 
+    de aplicaciones de Windows a un sistema GNU/Linux como es Guadalinex
+    
+Instalación de AMIGU
+    
+    El programa se instala desde consola ejecutando el comando:
+    
+    sudo python setup.py install
+    
+    En cuando el programa alcance la estabilidad deseada será empaquetado
+    para sistemas Debian
+    
+Ayuda
+
+    Si necesita algún tipo de ayuda o desea hacer alguna sugerencia el 
+    equipo de desarrolladores estará encantado de atenderle. Puede ponerse
+    en contacto con ellos via e-mail
+    
+Dependencias
+
+    El programa no requiere instalar ningún paquete extra en sistemas que 
+    tengan GNOME instalado. Sin embargo, si utiliza otra distribución o 
+    tiene algún problema compruebe que tiene instalados los siguientes 
+    programas:
+        - python
+        - python-gtk2
+        - gnome-mount
+        - readpst
+        - readbx
+        - unoconv
+        - dumphive
+        - hal
+        
+TODO/Ideas
+    
+    Soporte para varios idiomas
+    Empaquetado Debian
+    Correcciones de errores
+    
+Licencia
+
+    Este programa es software libre. Puede redistribuirlo y/o modificarlo 
+    bajo los términos de la Licencia Pública General de GNU según es 
+    publicada por la Free Software Foundation, bien de la versión 3 de 
+    dicha Licencia o bien (según su elección) de cualquier versión posterior.
+
+    Este programa se distribuye con la esperanza de que sea útil, pero 
+    SIN NINGUNA GARANTÍA, incluso sin la garantía MERCANTIL implícita o 
+    sin garantizar la CONVENIENCIA PARA UN PROPÓSITO PARTICULAR. Véase 
+    la Licencia Pública General de GNU para más detalles.
+
+    Debería haber recibido una copia de la Licencia Pública General junto 
+    con este programa. Si no ha sido así, escriba a la Free Software 
+    Foundation, Inc., en 675 Mass Ave, Cambridge, MA 02139, EEUU.
+
+
+    

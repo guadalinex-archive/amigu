@@ -1,0 +1,10 @@
+Package: amigu
+Version: 0.7.2-1
+Architecture: i386
+Maintainer: Fernando Ruiz <fruiz@forja.guadalinex.org>
+Installed-Size: 1212
+Depends: libc6 (>= 2.4)
+Section: utils
+Priority: extra
+Homepage: http://forja.guadalinex.org/amigu
+Description: AMIGU es un asistente que el ayudara a importar sus archivos y configuraciones de Windows
