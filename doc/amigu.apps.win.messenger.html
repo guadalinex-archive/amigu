@@ -1,0 +1,203 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module amigu.apps.win.messenger</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" /></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="amigu.html"><font color="#ffffff">amigu</font></a>.<a href="amigu.apps.html"><font color="#ffffff">apps</font></a>.<a href="amigu.apps.win.html"><font color="#ffffff">win</font></a>.messenger</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/fernando/amigu-0.7.3/amigu/apps/win/messenger.py">/home/fernando/amigu-0.7.3/amigu/apps/win/messenger.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-<br>
+#&nbsp;Este&nbsp;módulo&nbsp;aporta&nbsp;rutinas&nbsp;para&nbsp;configurar&nbsp;los&nbsp;clientes&nbsp;de&nbsp;mensajería&nbsp;instantánea:<br>
+#&nbsp;&nbsp;-&nbsp;Pidgin<br>
+#&nbsp;&nbsp;-&nbsp;Kopete<br>
+#&nbsp;&nbsp;-&nbsp;aMSN<br>
+#&nbsp;Tanto&nbsp;en&nbsp;las&nbsp;clases&nbsp;Gaim&nbsp;como&nbsp;Kopete&nbsp;se&nbsp;permite&nbsp;la&nbsp;configuración&nbsp;de&nbsp;multiples&nbsp;protocolos&nbsp;como:<br>
+#&nbsp;&nbsp;-&nbsp;MSN<br>
+#&nbsp;&nbsp;-&nbsp;Yahoo!<br>
+#&nbsp;&nbsp;-&nbsp;Gtalk&nbsp;(basado&nbsp;en&nbsp;Jabber)</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="shutil.html">shutil</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="amigu.apps.base.html#application">amigu.apps.base.application</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="amigu.apps.win.messenger.html#gtalk">gtalk</a>
+</font></dt><dt><font face="helvetica, arial"><a href="amigu.apps.win.messenger.html#w_live_id">w_live_id</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="amigu.apps.win.messenger.html#gaim">gaim</a>
+</font></dt><dt><font face="helvetica, arial"><a href="amigu.apps.win.messenger.html#kopete">kopete</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="gaim">class <strong>gaim</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;para&nbsp;el&nbsp;programa&nbsp;Gaim,&nbsp;actualmente&nbsp;Pidgin<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="gaim-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase</tt></dd></dl>
+
+<dl><dt><a name="gaim-config_gtalk"><strong>config_gtalk</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Gtalk<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Google&nbsp;Talk</tt></dd></dl>
+
+<dl><dt><a name="gaim-config_msn"><strong>config_msn</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;MSN<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;cuenta</tt></dd></dl>
+
+<dl><dt><a name="gaim-config_yahoo"><strong>config_yahoo</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Yahoo!<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Yahoo!</tt></dd></dl>
+
+<dl><dt><a name="gaim-error"><strong>error</strong></a>(self, e)</dt><dd><tt>Almacena&nbsp;los&nbsp;errores&nbsp;en&nbsp;tiempo&nbsp;de&nbsp;ejecución</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="gtalk">class <strong>gtalk</strong></a>(<a href="amigu.apps.base.html#application">amigu.apps.base.application</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;para&nbsp;el&nbsp;manejo&nbsp;de&nbsp;cuentas&nbsp;de&nbsp;mensajería&nbsp;instantánea&nbsp;de&nbsp;Google&nbsp;Gtalk<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="gtalk-do"><strong>do</strong></a>(self, option<font color="#909090">=None</font>)</dt><dd><tt>Realiza&nbsp;el&nbsp;proceso&nbsp;de&nbsp;importación&nbsp;a&nbsp;Pidgin&nbsp;y&nbsp;Kopete<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+option&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;Google&nbsp;talk</tt></dd></dl>
+
+<dl><dt><a name="gtalk-initialize"><strong>initialize</strong></a>(self)</dt><dd><tt>Personaliza&nbsp;los&nbsp;parámetros&nbsp;de&nbsp;la&nbsp;aplicación</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="amigu.apps.base.html#application">amigu.apps.base.application</a>:<br>
+<dl><dt><a name="gtalk-__init__"><strong>__init__</strong></a>(self, user, option<font color="#909090">=None</font>)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+user&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;Generic_usr<br>
+option&nbsp;--&nbsp;opción&nbsp;especifica&nbsp;de&nbsp;la&nbsp;aplicación&nbsp;que&nbsp;implemente&nbsp;la&nbsp;clase&nbsp;(default&nbsp;None)</tt></dd></dl>
+
+<dl><dt><a name="gtalk-run"><strong>run</strong></a>(self, model<font color="#909090">=None</font>, iter<font color="#909090">=None</font>)</dt><dd><tt>Ejecuta&nbsp;la&nbsp;tarea&nbsp;y&nbsp;controla&nbsp;su&nbsp;resultado.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+model&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;gtk.TreeModel&nbsp;obtenido&nbsp;del&nbsp;arbol&nbsp;de&nbsp;opciones<br>
+iter&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;gtk.TreeIter&nbsp;obtenido&nbsp;del&nbsp;arbol&nbsp;de&nbsp;opciones</tt></dd></dl>
+
+<dl><dt><a name="gtalk-update_progress"><strong>update_progress</strong></a>(self, value<font color="#909090">=0</font>, delta<font color="#909090">=0</font>)</dt><dd><tt>Actualiza&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;asociada&nbsp;a&nbsp;la&nbsp;tarea&nbsp;en&nbsp;con&nbsp;un&nbsp;<br>
+valor&nbsp;concreto&nbsp;o&nbsp;con&nbsp;un&nbsp;incremento&nbsp;relativo.&nbsp;Sólo&nbsp;válido&nbsp;para&nbsp;<br>
+la&nbsp;interfaz&nbsp;gráfica&nbsp;de&nbsp;Amigu<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+value&nbsp;--&nbsp;nuevo&nbsp;valor&nbsp;de&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;(default&nbsp;0)<br>
+delta&nbsp;--&nbsp;nuevo&nbsp;incremento&nbsp;de&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;(default&nbsp;0)</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="kopete">class <strong>kopete</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;para&nbsp;el&nbsp;programa&nbsp;Kopete<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="kopete-__init__"><strong>__init__</strong></a>(self)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase</tt></dd></dl>
+
+<dl><dt><a name="kopete-config_gtalk"><strong>config_gtalk</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Gtalk<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;cuenta&nbsp;de&nbsp;Google&nbsp;Talk</tt></dd></dl>
+
+<dl><dt><a name="kopete-config_msn"><strong>config_msn</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;MSN<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;cuenta&nbsp;de&nbsp;MSN</tt></dd></dl>
+
+<dl><dt><a name="kopete-config_yahoo"><strong>config_yahoo</strong></a>(self, cuenta)</dt><dd><tt>Configura&nbsp;la&nbsp;cuenta&nbsp;de&nbsp;Yahoo!<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;cuenta&nbsp;de&nbsp;Yahoo!</tt></dd></dl>
+
+<dl><dt><a name="kopete-error"><strong>error</strong></a>(self, e)</dt><dd><tt>Almacena&nbsp;los&nbsp;errores&nbsp;en&nbsp;tiempo&nbsp;de&nbsp;ejecución</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="w_live_id">class <strong>w_live_id</strong></a>(<a href="amigu.apps.base.html#application">amigu.apps.base.application</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;para&nbsp;el&nbsp;manejo&nbsp;de&nbsp;cuentas&nbsp;de&nbsp;mensajería&nbsp;instantánea&nbsp;de&nbsp;Windows<br>
+Programas:<br>
+&nbsp;*&nbsp;Windows&nbsp;Messenger<br>
+&nbsp;*&nbsp;MSN&nbsp;Messenger<br>
+&nbsp;*&nbsp;Live&nbsp;Messenger<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="w_live_id-do"><strong>do</strong></a>(self)</dt><dd><tt>Realiza&nbsp;el&nbsp;proceso&nbsp;de&nbsp;importación&nbsp;a&nbsp;Pidgin,&nbsp;Kopete&nbsp;y&nbsp;amsn</tt></dd></dl>
+
+<dl><dt><a name="w_live_id-initialize"><strong>initialize</strong></a>(self)</dt><dd><tt>Personaliza&nbsp;los&nbsp;parámetro&nbsp;de&nbsp;la&nbsp;aplicación</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="amigu.apps.base.html#application">amigu.apps.base.application</a>:<br>
+<dl><dt><a name="w_live_id-__init__"><strong>__init__</strong></a>(self, user, option<font color="#909090">=None</font>)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+user&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;Generic_usr<br>
+option&nbsp;--&nbsp;opción&nbsp;especifica&nbsp;de&nbsp;la&nbsp;aplicación&nbsp;que&nbsp;implemente&nbsp;la&nbsp;clase&nbsp;(default&nbsp;None)</tt></dd></dl>
+
+<dl><dt><a name="w_live_id-run"><strong>run</strong></a>(self, model<font color="#909090">=None</font>, iter<font color="#909090">=None</font>)</dt><dd><tt>Ejecuta&nbsp;la&nbsp;tarea&nbsp;y&nbsp;controla&nbsp;su&nbsp;resultado.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+model&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;gtk.TreeModel&nbsp;obtenido&nbsp;del&nbsp;arbol&nbsp;de&nbsp;opciones<br>
+iter&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;gtk.TreeIter&nbsp;obtenido&nbsp;del&nbsp;arbol&nbsp;de&nbsp;opciones</tt></dd></dl>
+
+<dl><dt><a name="w_live_id-update_progress"><strong>update_progress</strong></a>(self, value<font color="#909090">=0</font>, delta<font color="#909090">=0</font>)</dt><dd><tt>Actualiza&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;asociada&nbsp;a&nbsp;la&nbsp;tarea&nbsp;en&nbsp;con&nbsp;un&nbsp;<br>
+valor&nbsp;concreto&nbsp;o&nbsp;con&nbsp;un&nbsp;incremento&nbsp;relativo.&nbsp;Sólo&nbsp;válido&nbsp;para&nbsp;<br>
+la&nbsp;interfaz&nbsp;gráfica&nbsp;de&nbsp;Amigu<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+value&nbsp;--&nbsp;nuevo&nbsp;valor&nbsp;de&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;(default&nbsp;0)<br>
+delta&nbsp;--&nbsp;nuevo&nbsp;incremento&nbsp;de&nbsp;la&nbsp;barra&nbsp;de&nbsp;progreso&nbsp;(default&nbsp;0)</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-get_IM_accounts"><strong>get_IM_accounts</strong></a>(user)</dt><dd><tt>Devuelve&nbsp;un&nbsp;listado&nbsp;de&nbsp;cuentas&nbsp;de&nbsp;mensajería&nbsp;instantánea&nbsp;usadas<br>
+en&nbsp;Windows<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+user&nbsp;-&gt;&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;Winuser</tt></dd></dl>
+ <dl><dt><a name="-msn2amsn"><strong>msn2amsn</strong></a>(cuenta)</dt><dd><tt>Configura&nbsp;las&nbsp;cuentas&nbsp;de&nbsp;amsn<br>
+&nbsp;<br>
+Argumento&nbsp;de&nbsp;entrada:<br>
+cuenta&nbsp;-&gt;&nbsp;identificador&nbsp;de&nbsp;cuenta&nbsp;de&nbsp;MSN</tt></dd></dl>
+</td></tr></table>
+</body></html>
