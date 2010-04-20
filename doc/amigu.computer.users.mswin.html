@@ -1,0 +1,157 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module amigu.computer.users.mswin</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" /></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="amigu.html"><font color="#ffffff">amigu</font></a>.<a href="amigu.computer.html"><font color="#ffffff">computer</font></a>.<a href="amigu.computer.users.html"><font color="#ffffff">users</font></a>.mswin</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/fernando/amigu-0.7.3/amigu/computer/users/mswin.py">/home/fernando/amigu-0.7.3/amigu/computer/users/mswin.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="glob.html">glob</a><br>
+<a href="amigu.apps.win.mail.html">amigu.apps.win.mail</a><br>
+</td><td width="25%" valign=top><a href="amigu.apps.win.messenger.html">amigu.apps.win.messenger</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="re.html">re</a><br>
+<a href="amigu.apps.win.settings.html">amigu.apps.win.settings</a><br>
+</td><td width="25%" valign=top><a href="shutil.html">shutil</a><br>
+<a href="amigu.apps.win.webbrowser.html">amigu.apps.win.webbrowser</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="amigu.computer.users.mswin.html#winuser">winuser</a>(<a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a>, <a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a>)
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="amigu.computer.users.mswin.html#winuser">winuser</a>(<a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a>, <a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a>)
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="winuser">class <strong>winuser</strong></a>(<a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a>, <a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;para&nbsp;el&nbsp;manejo&nbsp;de&nbsp;usuarios&nbsp;de&nbsp;Windows.<br>
+Hereda&nbsp;de&nbsp;las&nbsp;clases&nbsp;Generic_usr&nbsp;y&nbsp;Regedit.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="amigu.computer.users.mswin.html#winuser">winuser</a></dd>
+<dd><a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a></dd>
+<dd><a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="winuser-__init__"><strong>__init__</strong></a>(self, dir, pc, ops)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+dir&nbsp;&nbsp;--&nbsp;directorio&nbsp;raíz&nbsp;del&nbsp;usuario<br>
+pc&nbsp;--&nbsp;objeto&nbsp;de&nbsp;la&nbsp;clase&nbsp;PC<br>
+ops&nbsp;--&nbsp;sistema&nbsp;operativo&nbsp;al&nbsp;que&nbsp;pertence&nbsp;el&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="winuser-check_path"><strong>check_path</strong></a>(self, path)</dt><dd><tt>Devuelve&nbsp;la&nbsp;ruta&nbsp;real&nbsp;accesible&nbsp;desde&nbsp;Linux&nbsp;de&nbsp;la&nbsp;ruta&nbsp;completa&nbsp;<br>
+de&nbsp;la&nbsp;carpeta&nbsp;respecto&nbsp;a&nbsp;Windows<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+path&nbsp;--&nbsp;ruta&nbsp;completa&nbsp;de&nbsp;una&nbsp;carpeta&nbsp;de&nbsp;Windows</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_AOL_accounts"><strong>get_AOL_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;una&nbsp;lista&nbsp;con&nbsp;los&nbsp;usuarios&nbsp;de&nbsp;AOL&nbsp;Instant&nbsp;Messenger</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_GTALK_account"><strong>get_GTALK_account</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;el&nbsp;identificador&nbsp;usado&nbsp;en&nbsp;Gtalk</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_MSN_account"><strong>get_MSN_account</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;cuenta&nbsp;asociada&nbsp;a&nbsp;MSN&nbsp;Messenger</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_OUTLOOK_accounts"><strong>get_OUTLOOK_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;un&nbsp;dicccionario&nbsp;con&nbsp;los&nbsp;las&nbsp;claves&nbsp;del&nbsp;registro&nbsp;que<br>
+contienen&nbsp;la&nbsp;configuración&nbsp;de&nbsp;correo&nbsp;de&nbsp;Outlook.&nbsp;<br>
+Compatible&nbsp;con&nbsp;Outlook&nbsp;desde&nbsp;la&nbsp;versión&nbsp;9&nbsp;a&nbsp;la&nbsp;12&nbsp;y&nbsp;con&nbsp;Outlook<br>
+Express&nbsp;6</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_THUNDERBIRD_accounts"><strong>get_THUNDERBIRD_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;una&nbsp;lista&nbsp;con&nbsp;las&nbsp;cuentas&nbsp;de&nbsp;correo&nbsp;configuradas&nbsp;en&nbsp;<br>
+Mozilla&nbsp;Thunderbird</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_THUNDERBIRD_prefs"><strong>get_THUNDERBIRD_prefs</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;el&nbsp;archivo&nbsp;de&nbsp;configuración&nbsp;de&nbsp;Mozilla&nbsp;Thunderbird</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_WINDOWS_LIVE_MAIL_accounts"><strong>get_WINDOWS_LIVE_MAIL_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;un&nbsp;dicccionario&nbsp;con&nbsp;los&nbsp;archivos&nbsp;que<br>
+contienen&nbsp;la&nbsp;configuración&nbsp;de&nbsp;correo&nbsp;de&nbsp;Windows&nbsp;Live&nbsp;Mail.</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_WINDOWS_MAIL_accounts"><strong>get_WINDOWS_MAIL_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;un&nbsp;dicccionario&nbsp;con&nbsp;los&nbsp;archivos&nbsp;que<br>
+contienen&nbsp;la&nbsp;configuración&nbsp;de&nbsp;correo&nbsp;de&nbsp;Windows&nbsp;Mail.</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_YAHOO_account"><strong>get_YAHOO_account</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;el&nbsp;identificador&nbsp;usado&nbsp;en&nbsp;Yahoo!&nbsp;Messenger</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_avatar"><strong>get_avatar</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;imagen&nbsp;del&nbsp;usuario.&nbsp;Disponible&nbsp;a&nbsp;partir&nbsp;de&nbsp;XP</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_copier"><strong>get_copier</strong></a>(self, folder)</dt><dd><tt>Devuelve&nbsp;un&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;Copier&nbsp;para&nbsp;copiar&nbsp;una&nbsp;carpeta<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+folder&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;Folder&nbsp;de&nbsp;la&nbsp;carpeta&nbsp;a&nbsp;copiar</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_details"><strong>get_details</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;información&nbsp;sobre&nbsp;el&nbsp;usuario&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OBSOLETO</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_info"><strong>get_info</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;información&nbsp;de&nbsp;archivos&nbsp;y&nbsp;programas&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_messenger_accounts"><strong>get_messenger_accounts</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;las&nbsp;cuentas&nbsp;de&nbsp;mensajería&nbsp;de&nbsp;Windows&nbsp;Live&nbsp;Messenger</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_tree_options"><strong>get_tree_options</strong></a>(self, update<font color="#909090">=False</font>)</dt><dd><tt>Devuele&nbsp;el&nbsp;árbol&nbsp;de&nbsp;opciones&nbsp;generado&nbsp;para&nbsp;el&nbsp;usario&nbsp;seleccionado.<br>
+El&nbsp;objeto&nbsp;devuelto&nbsp;es&nbsp;de&nbsp;tipo&nbsp;gtk.TreeStore.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+update&nbsp;--&nbsp;indica&nbsp;si&nbsp;se&nbsp;debe&nbsp;actualizar&nbsp;el&nbsp;contenido&nbsp;del&nbsp;árbol&nbsp;(default&nbsp;False)</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_user_folders"><strong>get_user_folders</strong></a>(self, pc)</dt><dd><tt>Devuelve&nbsp;las&nbsp;carpetas&nbsp;de&nbsp;archivos,&nbsp;confifguraciones&nbsp;y&nbsp;programas&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="amigu.util.winreg.html#regedit">amigu.util.winreg.regedit</a>:<br>
+<dl><dt><a name="winuser-clean"><strong>clean</strong></a>(self)</dt><dd><tt>Borra&nbsp;el&nbsp;archivo&nbsp;temporal&nbsp;del&nbsp;registro</tt></dd></dl>
+
+<dl><dt><a name="winuser-error"><strong>error</strong></a>(self, e)</dt><dd><tt>Alamacena&nbsp;los&nbsp;errores&nbsp;en&nbsp;tiempo&nbsp;de&nbsp;ejecución</tt></dd></dl>
+
+<dl><dt><a name="winuser-search_key"><strong>search_key</strong></a>(self, key)</dt><dd><tt>Devuelve&nbsp;un&nbsp;diccionario&nbsp;con&nbsp;el&nbsp;valor&nbsp;asociado&nbsp;a&nbsp;la&nbsp;clave&nbsp;del&nbsp;registro<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+key&nbsp;-&gt;&nbsp;clave&nbsp;del&nbsp;registro&nbsp;de&nbsp;Windows</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="amigu.computer.users.base.html#generic_usr">amigu.computer.users.base.generic_usr</a>:<br>
+<dl><dt><a name="winuser-all_errors"><strong>all_errors</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;los&nbsp;errores&nbsp;producidos&nbsp;en&nbsp;tiempo&nbsp;de&nbsp;ejecuccion</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_name"><strong>get_name</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;el&nbsp;nombre&nbsp;del&nbsp;usuario&nbsp;en&nbsp;el&nbsp;sistema</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_path"><strong>get_path</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;carpeta&nbsp;raíz&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="winuser-get_personal_folder"><strong>get_personal_folder</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;las&nbsp;carpetas&nbsp;personales&nbsp;y&nbsp;de&nbsp;configuración&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="winuser-init_apps"><strong>init_apps</strong></a>(self)</dt><dd><tt>Método&nbsp;a&nbsp;definir&nbsp;por&nbsp;las&nbsp;clases&nbsp;hijas&nbsp;para&nbsp;ejecutarse&nbsp;al&nbsp;<br>
+crear&nbsp;el&nbsp;objeto</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-test"><strong>test</strong></a>()</dt></dl>
+</td></tr></table>
+</body></html>

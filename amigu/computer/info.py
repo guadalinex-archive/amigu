@@ -4,25 +4,28 @@
 import commands
 import re
 import os
+import gksu2
+import tempfile
 
 class partition:
     """Clase para el manejo de particiones del sistema"""
 
-    def __init__(self, dev, fs=None):
+    def __init__(self, dev, ops=None):
         """Constructor de la clase
         
         Argumentos de entrada:
         dev -- dispositivo de bloques
-        fs -- sistema de ficheros del dispositivo (default None)
+        os -- sistema de operativo instalado (default None)
         """
         if os.path.exists(dev):
             self.dev = dev
         else:
             raise Exception(dev, "Invalid device")
-        self.filesystem = fs
+        self.filesystem = None
         self.mountpoint = None
-        self.installed_os = None
+        self.installed_os = ops
         self.users_path = []
+        
 
     def check(self):
         """Monta la partición y comprueba su contenido"""
@@ -66,9 +69,19 @@ class partition:
                     pass
             f.close()
             if not mounted and automount and not error:
-                os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
+                #os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
+                gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
                 mounted = self.is_mounted()
             return mounted
+            
+    def umount(self):
+        if self.mountpoint and self.mountpoint.startswith('/tmp'):
+            gksu2.sudo('umount %s' % self.dev)
+            try:
+                os.remove(self.mountpoint)
+            except:
+                pass
+           
 
     def detect_os(self):
         """Detecta el tipo de sistema operativo que contiene la partición.
@@ -76,6 +89,8 @@ class partition:
         existentes en él
         
         """
+        if self.installed_os:
+            return 1
         if self.filesystem == 'vfat':
             if os.path.exists(os.path.join(self.mountpoint, 'Documents and Settings')):
                 self.installed_os = "MS Windows 2000/XP"
@@ -140,9 +155,9 @@ class pc:
         """Constructor de la clase"""
         self.errors = []
         self.partitions = []
-        for dev, fs in self.get_devices().iteritems():
+        for dev, os in self.get_devices().iteritems():
             try:
-                self.partitions.append(partition(dev, fs))
+                self.partitions.append(partition(dev, os))
             except:
                 pass
         self.win_users = {}
@@ -151,31 +166,17 @@ class pc:
         self.win_parts = []
 
 
-    def get_devices(self, fs = []):
-        """Busca las particiones del equipo que contengan el sistema
-        de ficheros especificado. Por defecto busca todas las disponibles
-        
-        Argumentos de entrada:
-        fs -- lista con los sistemas de ficheros a buscar (default [])
-        
+    def get_devices(self):
+        """Busca las particiones del equipo que contengan sistemas
+        operativos instalados
         """
+        listos = commands.getoutput('gksudo os-prober')
         r = {}
-        udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
-        for u in udi_list.splitlines():
-            if u.find('=') == -1:
-                print u
-                continue
-            udi = u.split('=')[1]
-            dev = commands.getoutput('hal-get-property --udi %s --key block.device' % udi)
-            volume = commands.getoutput('hal-get-property --udi %s --key info.product' % udi)
-            l = re.compile('Volume \((?P<filesystem>\w+)\)')
-            m = l.match(volume)
+        for ops in listos.splitlines():
             try:
-                f = m.group('filesystem')
+                r[ops.split(':')[0]]=ops.split(':')[1]
             except:
-                f = None
-            if not fs or f in fs:
-                r[dev]=f
+                pass
         return r
 
     def check_all_partitions(self):
@@ -184,6 +185,12 @@ class pc:
         for p in self.partitions:
             p.check()
             print unicode(p)
+            
+    def umount_all_partitions(self):
+        """Desmonta todas las particiones previamente usadas"""
+        print "Comprobando particiones..."
+        for p in self.partitions:
+            p.umount()
 
     def error(self, e):
         """Almacena los errores en tiempo de ejecución  OBSOLETO """

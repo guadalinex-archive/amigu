@@ -29,7 +29,7 @@ setup(  name             = "AMIGU",
                             'amigu.apps.mac',],
         data_files=[('/usr/share/applications/', ['amigu.desktop']),
                     ('/usr/share/amigu/', ['share/places.sqlite']),
-                    ('/usr/bin/', ['bin/amigu','bin/dumphive', 'bin/readdbx', 'bin/readoe', 'bin/readpst']),
+                    ('/usr/bin/', ['bin/amigu','bin/dumphive', 'bin/readdbx', 'bin/readoe']),
                     ('/usr/share/pixmaps/amigu', ['imagenes/cab_amigu.png', 'imagenes/icon_paginacion.png']),
                     ('/usr/share/locale/es/LC_MESSAGES', ['translations/es/LC_MESSAGES/amigu.mo']),
                     ('/usr/share/locale/en/LC_MESSAGES', ['translations/en/LC_MESSAGES/amigu.mo'])

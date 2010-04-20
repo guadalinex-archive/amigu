@@ -6,4 +6,4 @@ gettext.bindtextdomain("amigu", "/usr/share/locale")
 gettext.textdomain("amigu")
 _ = gettext.gettext
 
-__version__ = "0.7.3"
+__version__ = "0.7.5"

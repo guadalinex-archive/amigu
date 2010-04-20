@@ -272,8 +272,11 @@ class winuser(regedit, generic_usr):
             except:
                 pass
         for f in folder_2_copy:
-            c = self.get_copier(f)
-            self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+            try:
+                c = self.get_copier(f)
+                self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+            except:
+                pass
 
 
         # configuraciones

@@ -1,0 +1,94 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module amigu.computer.users.base</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" /></head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="amigu.html"><font color="#ffffff">amigu</font></a>.<a href="amigu.computer.html"><font color="#ffffff">computer</font></a>.<a href="amigu.computer.users.html"><font color="#ffffff">users</font></a>.base</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/fernando/amigu-0.7.3/amigu/computer/users/base.py">/home/fernando/amigu-0.7.3/amigu/computer/users/base.py</a></font></td></tr></table>
+    <p><tt>#&nbsp;-*-&nbsp;coding:&nbsp;utf-8&nbsp;-*-</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="re.html">re</a><br>
+</td><td width="25%" valign=top><a href="shutil.html">shutil</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="amigu.computer.users.base.html#generic_usr">generic_usr</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="generic_usr">class <strong>generic_usr</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Clase&nbsp;abstracta&nbsp;para&nbsp;los&nbsp;usuarios&nbsp;del&nbsp;PC<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="generic_usr-__init__"><strong>__init__</strong></a>(self, dir, pc, ops)</dt><dd><tt>Constructor&nbsp;de&nbsp;la&nbsp;clase.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+dir&nbsp;&nbsp;--&nbsp;directorio&nbsp;raíz&nbsp;del&nbsp;usuario<br>
+pc&nbsp;--&nbsp;objeto&nbsp;de&nbsp;la&nbsp;clase&nbsp;PC<br>
+ops&nbsp;--&nbsp;sistema&nbsp;operativo&nbsp;al&nbsp;que&nbsp;pertence&nbsp;el&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-all_errors"><strong>all_errors</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;los&nbsp;errores&nbsp;producidos&nbsp;en&nbsp;tiempo&nbsp;de&nbsp;ejecuccion</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-clean"><strong>clean</strong></a>(self)</dt><dd><tt>Método&nbsp;abstracto&nbsp;que&nbsp;elimina&nbsp;los&nbsp;archivos&nbsp;temporales&nbsp;usados</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_avatar"><strong>get_avatar</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;imagen&nbsp;de&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_details"><strong>get_details</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;información&nbsp;sobre&nbsp;el&nbsp;usuario&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OBSOLETO</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_info"><strong>get_info</strong></a>(self)</dt><dd><tt>Método&nbsp;a&nbsp;definir&nbsp;por&nbsp;las&nbsp;clases&nbsp;hijas.<br>
+Devuelve&nbsp;la&nbsp;información&nbsp;de&nbsp;archivos&nbsp;y&nbsp;programas&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_name"><strong>get_name</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;el&nbsp;nombre&nbsp;del&nbsp;usuario&nbsp;en&nbsp;el&nbsp;sistema</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_path"><strong>get_path</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;la&nbsp;carpeta&nbsp;raíz&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_personal_folder"><strong>get_personal_folder</strong></a>(self)</dt><dd><tt>Devuelve&nbsp;las&nbsp;carpetas&nbsp;personales&nbsp;y&nbsp;de&nbsp;configuración&nbsp;del&nbsp;usuario</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_tree_options"><strong>get_tree_options</strong></a>(self, update<font color="#909090">=False</font>)</dt><dd><tt>Devuele&nbsp;el&nbsp;árbol&nbsp;de&nbsp;opciones&nbsp;generado&nbsp;para&nbsp;el&nbsp;usario&nbsp;seleccionado.<br>
+El&nbsp;objeto&nbsp;devuelto&nbsp;es&nbsp;de&nbsp;tipo&nbsp;gtk.TreeStore.<br>
+Este&nbsp;método&nbsp;debe&nbsp;ampliarse&nbsp;en&nbsp;las&nbsp;clases&nbsp;hijas.<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+update&nbsp;--&nbsp;indica&nbsp;si&nbsp;se&nbsp;debe&nbsp;actualizar&nbsp;el&nbsp;contenido&nbsp;del&nbsp;árbol&nbsp;(default&nbsp;False)</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-get_user_folders"><strong>get_user_folders</strong></a>(self, pc)</dt><dd><tt>Devuelve&nbsp;un&nbsp;diccionario&nbsp;que&nbsp;contiene&nbsp;las&nbsp;carpetas&nbsp;de&nbsp;archivos,&nbsp;<br>
+configuraciones&nbsp;y&nbsp;programas&nbsp;del&nbsp;usuario.<br>
+&nbsp;<br>
+Esta&nbsp;clase&nbsp;debe&nbsp;ampliarse&nbsp;en&nbsp;las&nbsp;clases&nbsp;hijas<br>
+&nbsp;<br>
+Argumentos&nbsp;de&nbsp;entrada:<br>
+pc&nbsp;--&nbsp;objeto&nbsp;de&nbsp;tipo&nbsp;PC</tt></dd></dl>
+
+<dl><dt><a name="generic_usr-init_apps"><strong>init_apps</strong></a>(self)</dt><dd><tt>Método&nbsp;a&nbsp;definir&nbsp;por&nbsp;las&nbsp;clases&nbsp;hijas&nbsp;para&nbsp;ejecutarse&nbsp;al&nbsp;<br>
+crear&nbsp;el&nbsp;objeto</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-test"><strong>test</strong></a>()</dt></dl>
+</td></tr></table>
+</body></html>

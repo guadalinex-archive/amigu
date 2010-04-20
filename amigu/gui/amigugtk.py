@@ -145,7 +145,7 @@ class Asistente:
         
         separador1 = gtk.HSeparator()
         separador2 = gtk.HSeparator()
-        self.tooltips = gtk.Tooltips()
+        
         
         box_statico_sup = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
         box_variable = gtk.VBox(False, 1)#Creo lo que va a ir variando
@@ -310,7 +310,8 @@ class Asistente:
 
         boton22 = gtk.Button(label = _("Seleccionar otra carpeta"), stock = None)
         boton22.connect_object("clicked", self.buscar, self.window)
-        self.tooltips.set_tip(boton22, _("Elija la carpeta Destino donde quiere guardar los archivos"))
+        #tip22 = gtk.Tooltip(boton22)
+        #tip22.set_text(_("Elija la carpeta Destino donde quiere guardar los archivos"))
 
         frame5 = gtk.Frame(_("Opciones de migración"))
         self.arbol_inicializado = False
@@ -388,7 +389,7 @@ class Asistente:
         dialog = gtk.AboutDialog()
         dialog.set_name("AMIGU")
         dialog.set_version(ver)
-        dialog.set_copyright("Copyright © 2006-2009 Junta de Andalucía")
+        dialog.set_copyright("Copyright © 2006-2010 Junta de Andalucía")
         dialog.set_website(self.url)
         dialog.set_website_label(self.url)
         dialog.set_authors([
@@ -542,6 +543,8 @@ class Asistente:
             print _("Eliminando archivos temporales...")
             model.get_value(iter, 3).clean()
             iter = self.list_users.iter_next(iter)
+        print _("Desmontando particiones...")
+        self.pc.umount_all_partitions()
         gtk.main_quit()
 
     def etapa_siguiente(self, widget):
@@ -563,7 +566,7 @@ class Asistente:
         self.window.set_focus(self.forward_boton)
 
 
-    def actualizar_espacio(self, widget=None):
+    def actualizar_espacio(self, widget=None, other=None):
         """Actualiza el espacio libre en disco"""
         destino = self.entry.get_text()
         if os.path.exists(destino):
@@ -624,13 +627,13 @@ class Asistente:
 
             model, iter = self.users.get_selection().get_selected()
             self.selected_user = model.get_value(iter, 3)
-            if self.selected_user.os.find('MS') == -1:
+            if self.selected_user.os.find('Windows') == -1:
                 self.paso = 2
                 self.box_usuarios.show()
                 self.dialogo_advertencia(_("Opción no disponible actualmente. \nSeleccione otro tipo de usuario"))
                 return 0
             self.imagen_usuario.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_user.get_avatar(), 80, 80))
-            self.cuenta.set_markup('<b>%s</b>\n<i>%s</i>'% (self.selected_user.get_name(), self.selected_user.os))
+            self.cuenta.set_markup('<b>%s</b>\n<span face="arial" size="8000"><i>%s</i></span>'% (self.selected_user.get_name(), self.selected_user.os))
             self.labelpri.set_markup('<span face="arial" size="12000" foreground="chocolate"><b>'+_('OPCIONES DE MIGRACIÓN')+'</b></span>')
             #self.options.set_model(self.selected_user.get_tree_options())
             
@@ -715,12 +718,12 @@ class Asistente:
         gtk.gdk.threads_enter()
         self.label2.set_markup('<b>'+_("Buscando usuarios de otros sistemas...")+ '</b>')
         gtk.gdk.threads_leave()
-        pc = mipc()
-        pc.check_all_partitions()
+        self.pc = mipc()
+        self.pc.check_all_partitions()
         self.usuarios = {}
-        wusers = pc.get_win_users()
-        xusers = pc.get_lnx_users()
-        musers = pc.get_mac_users()
+        wusers = self.pc.get_win_users()
+        xusers = self.pc.get_lnx_users()
+        musers = self.pc.get_mac_users()
         gtk.gdk.threads_enter()
         self.list_users.clear()
         self.users.set_model(self.list_users)
@@ -731,7 +734,7 @@ class Asistente:
 
         for u, s in wusers.iteritems():
             try:
-                usuario = mswin.winuser(u, pc, s)
+                usuario = mswin.winuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Windows.") + "\n"
                 continue
@@ -739,7 +742,7 @@ class Asistente:
                 self.insertar_usuario(usuario)
         for u, s in xusers.iteritems():
             try:
-                usuario = openos.freeuser(u, pc, s)
+                usuario = openos.freeuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Unix/Linux.") + "\n"
                 continue
@@ -747,7 +750,7 @@ class Asistente:
                 self.insertar_usuario(usuario)
         for u, s in musers.iteritems():
             try:
-                usuario = macos.macuser(u, pc, s)
+                usuario = macos.macuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Mac OS.") + "\n"
                 continue
