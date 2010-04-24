@@ -11,7 +11,7 @@ for d in needed_dirs:
     except:
         pass
 
-setup(  name             = "AMIGU",
+setup(  name             = "amigu",
         version          = amigu.__version__,
         author           = "Fernando Ruiz Humanes",
         author_email     = "fruiz@forja.guadalinex.org",
@@ -36,4 +36,6 @@ setup(  name             = "AMIGU",
                     ],
      )
 
+os.chmod('/usr/bin/amigu', 0755)
+os.chmod('/usr/share/applications/amigu.desktop', 0644)
 

@@ -917,7 +917,7 @@ class Asistente:
 
 def run():
     print _("Asistente de MIgración de Guadalinex")
-    print '(C) 2006-2007 Fernando Ruiz Humanes, Emilia Abad Sanchez\nThis program is freely redistributable under the terms\nof the GNU General Public License.\n'
+    print '(C) 2006-2010 Fernando Ruiz Humanes, Emilia Abad Sanchez\nThis program is freely redistributable under the terms\nof the GNU General Public License.\n'
     base = Asistente()
     base.main()
 
