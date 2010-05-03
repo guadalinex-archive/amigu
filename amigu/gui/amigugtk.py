@@ -74,6 +74,7 @@ class Asistente:
         # Atributos
         self.paso = 1
         self.url = "http://forja.guadalinex.org/webs/amigu/"
+        self.pc = None
 
         self.watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
         self.hilo = None
@@ -444,10 +445,10 @@ class Asistente:
         h1.pack_start(mensaje, True, False, 10)
         self.advertencia.show_all()
         self.advertencia.set_default_response(gtk.RESPONSE_ACCEPT)
-        self.advertencia.run()
-        #r = self.advertencia.response()
-        self.wait = False
+        r = self.advertencia.run()
         self.advertencia.destroy()
+        self.advertencia = None
+        self.wait = False
 
 
 
@@ -543,8 +544,10 @@ class Asistente:
             print _("Eliminando archivos temporales...")
             model.get_value(iter, 3).clean()
             iter = self.list_users.iter_next(iter)
-        print _("Desmontando particiones...")
-        self.pc.umount_all_partitions()
+            
+        if self.pc:
+            print _("Desmontando particiones...")
+            self.pc.umount_all_partitions()
         gtk.main_quit()
 
     def etapa_siguiente(self, widget):
@@ -709,7 +712,7 @@ class Asistente:
         self.options.set_model(tree_options)
         self.options.expand_all()
         self.forward_boton.set_sensitive(True)
-        self.advertencia.destroy()
+        self.advertencia.response(gtk.RESPONSE_CLOSE)
         gtk.gdk.threads_leave()
         self.wait = False
 
@@ -911,8 +914,9 @@ class Asistente:
             self.stop_boton.hide()
             self.exit_boton.show_all()
             self.about_boton.show()
-            self.dialogo_advertencia(_("Algunos cambios tendrán efecto cuando reinicie su equipo"))
+            #self.dialogo_advertencia(_("Algunos cambios tendrán efecto cuando reinicie su equipo"))
             gtk.gdk.threads_leave()
+            
 
 
 def run():

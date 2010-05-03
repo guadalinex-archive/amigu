@@ -371,10 +371,13 @@ class winuser(regedit, generic_usr):
         except:
             pass
 
-        if configuraciones:
+        if len(configuraciones):
             cfg = self.tree_options.append(conf, [_("Otros"), None, None, _('Otras opciones de configuración'), None] )
             for c in configuraciones:
-                self.tree_options.append(cfg, [c.name, None, c.size, c.description, c] )
+                try:
+                    self.tree_options.append(cfg, [c.name, None, c.size, c.description, c] )
+                except:
+                    pass
 
         return self.tree_options
 #end class win_user

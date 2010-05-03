@@ -31,7 +31,7 @@ class application:
             self.initialize()
         except:
             cla, exc, trbk = sys.exc_info()
-            print "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
+            print "Error: %s (%s)\nArgs: %s\nTrace: %s" % (cla.__name__, self.name, exc, traceback.format_tb(trbk, 10))
             raise Exception
         self.error = ''
 

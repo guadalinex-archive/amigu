@@ -4,7 +4,6 @@
 import commands
 import re
 import os
-import gksu2
 import tempfile
 
 class partition:
@@ -70,15 +69,17 @@ class partition:
             f.close()
             if not mounted and automount and not error:
                 #os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
-                gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
-                mounted = self.is_mounted()
+                os.system('gksudo \"mount -o ro %s %s\"' % (self.dev, tempfile.mkdtemp()))
+                #gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
+                mounted = self.is_mounted(False)
             return mounted
             
     def umount(self):
         if self.mountpoint and self.mountpoint.startswith('/tmp'):
-            gksu2.sudo('umount %s' % self.dev)
+            #gksu2.sudo('umount %s' % self.dev)
+            os.system('gksudo \"umount %s\"' % self.dev)
             try:
-                os.remove(self.mountpoint)
+                os.rmdir(self.mountpoint)
             except:
                 pass
            
