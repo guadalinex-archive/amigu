@@ -9,7 +9,7 @@ import tempfile
 class partition:
     """Clase para el manejo de particiones del sistema"""
 
-    def __init__(self, dev, ops=None):
+    def __init__(self, dev, ops=None, fs=None):
         """Constructor de la clase
         
         Argumentos de entrada:
@@ -20,7 +20,7 @@ class partition:
             self.dev = dev
         else:
             raise Exception(dev, "Invalid device")
-        self.filesystem = None
+        self.filesystem = fs
         self.mountpoint = None
         self.installed_os = ops
         self.users_path = []
@@ -173,6 +173,17 @@ class pc:
         """
         listos = commands.getoutput('gksudo os-prober')
         r = {}
+        try:
+            udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
+            for u in udi_list.splitlines():
+                if u.find('=') == -1:
+                    print u
+                    continue
+                udi = u.split('=')[1]
+                dev = commands.getoutput('hal-get-property --udi %s --key block.device' % udi)
+                r[dev]=None
+        except:
+            pass
         for ops in listos.splitlines():
             try:
                 r[ops.split(':')[0]]=ops.split(':')[1]
@@ -189,7 +200,7 @@ class pc:
             
     def umount_all_partitions(self):
         """Desmonta todas las particiones previamente usadas"""
-        print "Comprobando particiones..."
+        print "Liberando particiones..."
         for p in self.partitions:
             p.umount()
 
@@ -200,7 +211,7 @@ class pc:
     def get_win_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Windows"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Windows') > 0:
+            if p.installed_os and p.installed_os.find('Windows') >= 0:
                 for path in p.users_path:
                     self.win_users[path] = p.installed_os
         return self.win_users
@@ -208,7 +219,7 @@ class pc:
     def get_lnx_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Linux"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Linux') > 0:
+            if p.installed_os and p.installed_os.find('Linux') >= 0:
                 for path in p.users_path:
                     self.lin_users[path] = p.installed_os
         return self.lin_users
@@ -216,7 +227,7 @@ class pc:
     def get_mac_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Mac OS"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Mac') > 0:
+            if p.installed_os and p.installed_os.find('Mac') >= 0:
                 for path in p.users_path:
                     self.mac_users[path] = p.installed_os
         return self.mac_users
@@ -225,7 +236,7 @@ class pc:
         """Devuelve las particiones que contienen un Sistema Operativo Windows instalado"""
         r = []
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Windows') >= 0:
+            if p.installed_os and p.installed_os.find('Windows') >= 0 or p.filesystem == "fuseblk":
                 r.append(p)
         self.win_parts = r
         return r
