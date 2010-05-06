@@ -334,7 +334,7 @@ class Asistente:
         frame2.add(self.box_opcioneshor1)
         self.box_opcioneshor3.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
         self.box_opcioneshor3.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor4.pack_start(self.datos_req, True, True, 0)
+        self.box_opcioneshor4.pack_start(self.datos_req, False, True, 0)
         self.box_opcioneshor4.pack_start(self.datos_libre, True, True, 0)
         self.box_opcioneshor1.pack_start(self.box_opcionesver3, True, True, 0)
         self.box_opcionesver3.pack_start(self.box_opcioneshor3, True, False, 0)
@@ -347,7 +347,7 @@ class Asistente:
         self.box_opcionesver4.pack_start(self.box_opcioneshor6, True, True, 0)
         self.box_opcioneshor5.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
         self.box_opcioneshor5.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor6.pack_start(self.conf_req, True, False, 0)
+        self.box_opcioneshor6.pack_start(self.conf_req, False, True, 0)
         self.box_opcioneshor6.pack_start(self.conf_libre, True, False, 0)
         self.box_opcioneshor2.pack_start(self.frame4, True, False, 0)
         self.box_opcioneshor2.pack_start(frame2, True, False, 0)
@@ -535,6 +535,7 @@ class Asistente:
         """Finaliza la ejecución del asistente y limpiar los archivos temporales"""
         if self.working:
             self.abort = True
+            self.tarea.cancel()
             self.pause = False
             return 0
         print _("Saliendo del asistente")
@@ -709,10 +710,14 @@ class Asistente:
     def load_options(self):
         tree_options = self.selected_user.get_tree_options()
         gtk.gdk.threads_enter()
-        self.options.set_model(tree_options)
-        self.options.expand_all()
-        self.forward_boton.set_sensitive(True)
-        self.advertencia.response(gtk.RESPONSE_CLOSE)
+        try:
+            self.advertencia.response(gtk.RESPONSE_CLOSE)
+        except:
+            pass
+        else:
+            self.options.set_model(tree_options)
+            self.options.expand_all()
+            self.forward_boton.set_sensitive(True)
         gtk.gdk.threads_leave()
         self.wait = False
 
@@ -858,19 +863,20 @@ class Asistente:
         self.working = True
         self.abort = False
         self.pause = False
+        self.progreso.set_fraction(0)
         while task and not self.abort:
-            tarea = self.tasks.get_value(task, 4)
-            if tarea:
+            self.tarea = self.tasks.get_value(task, 4)
+            if self.tarea:
                 gtk.gdk.threads_enter()
                 self.tasks.set_value(task, 1, gtk.STOCK_EXECUTE)
                 por = self.progreso.get_fraction() + (1.0/(self.n_tasks+1))
                 if por > 1:
                     por = 0.0
                 self.progreso.set_fraction(por)
-                self.progreso.set_text(_("Importando") + ' '+ tarea.description)
-                if tarea.size > 102400:
+                self.progreso.set_text(_("Importando") + ' '+ self.tarea.description)
+                if self.tarea.size > 102400:
                     self.tasks.set_value(task, 3, _("Migrando...(Puede llevar algún rato)"))
-                elif tarea.size > 1024000:
+                elif self.tarea.size > 1024000:
                     self.tasks.set_value(task, 3, _("Migrando...(Tenga paciencia)"))
                 else:
                     self.tasks.set_value(task, 3, _("Migrando..."))
@@ -878,22 +884,26 @@ class Asistente:
                 self.resumen.set_cursor(path)
                 gtk.gdk.threads_leave()
                 time.sleep(0.5)
-                if isinstance(tarea, copier):
-                    tarea.set_destination(self.destino)
+                if isinstance(self.tarea, copier):
+                    self.tarea.set_destination(self.destino)
                 try:
-                    tarea.run(self.tasks, task)
+                    self.tarea.run(self.tasks, task)
                 except:
-                    print tarea.error
+                    print self.tarea.error
                 gtk.gdk.threads_enter()
-                if tarea.status > 0:
+                if self.tarea.status > 0:
                     self.tasks.set_value(task, 1, gtk.STOCK_YES)
                     self.tasks.set_value(task, 2, 100.0)
                     self.tasks.set_value(task, 3, _("Completado"))
-                elif tarea.status < 0:
+                elif self.tarea.status < 0:
                     self.tasks.set_value(task, 1, gtk.STOCK_NO)
                     self.tasks.set_value(task, 2, 0.0)
                     self.tasks.set_value(task, 3, _("Fallido"))
-                    print tarea.error
+                elif self.tarea.status == 0:
+                    self.tasks.set_value(task, 1, gtk.STOCK_NO)
+                    self.tasks.set_value(task, 2, 0.0)
+                    self.tasks.set_value(task, 3, _("Abortado"))
+                    print self.tarea.error
                 gtk.gdk.threads_leave()
             while self.pause:
                 time.sleep(1.0)

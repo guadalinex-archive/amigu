@@ -10,6 +10,10 @@ import shutil
 from os.path import isdir, isfile, exists, split, basename, dirname, splitext, join
 from amigu.apps.base import application
 from amigu import _
+import subprocess
+from threading import Timer
+
+abort_copy = False
 
 def backup(file):
     """Crea una copia de respaldo del archivo que se le indica.
@@ -51,11 +55,16 @@ def odf_converter(file, format = 'pdf'):
     format -> tipo de formato de salida (default "pdf")
     
     """
+    s = None
     try:
-        os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
+        #os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
+        s = subprocess.Popen(["unoconv", "-f", format, file])
+        t = Timer(30, s.kill)
+        t.start()
     except:
-        pass
-
+        s.wait()
+    return s
+        
 def error(e):
     """Error handler"""
     print e
@@ -88,7 +97,7 @@ class folder:
                     "Downloads": _("Downloads")
                 }
     
-    document_files = ['.sxv', '.doc', '.xml', '.rtf', '.sdw']
+    document_files = ['.sxv', '.doc', '.rtf', '.sdw']
     presentation_files = ['.pot', '.ppt']
     spread_files = ['.xls', '.xlt', '.sxc']
     texto = ['.sxv', '.stw', '.doc', '.rtf', '.sdw', '.var', '.txt', '.html', '.htm', '.pdf']
@@ -117,6 +126,7 @@ class folder:
             self.path = self.create_folder(path)
         self.files = None
         self.dirs = None
+        self.subprocesos = []
         if self.errors:
             print self.errors
             #self.path = path
@@ -216,6 +226,8 @@ class folder:
         delta -> incremento de progreso por cada archivo copiado (default 0)
         
         """
+        i = 0
+        global abort_copy
         if not isinstance(destino, folder):
             destino = folder(join(destino, self.get_name()))
         for e in os.listdir(self.path):
@@ -225,32 +237,47 @@ class folder:
                     # caso recursivo
                     suborigen = folder(ruta)
                     subdestino = folder(join(destino.path, e))
-                    if suborigen.path and subdestino.path:
+                    if suborigen.path and subdestino.path and not abort_copy:
+                        abort_copy = False
                         suborigen.copy(subdestino, extension, convert, exclude, function, delta)
                 elif isfile(ruta):
                     # caso base
                     ext = splitext(e)[-1]
-                    if (not exclude or (not ext in exclude)) and (not extension or (ext in extension)): # think about some file to exclude, like .ini o .lnk
+                    if (not exclude or (not ext in exclude)) and (not extension or (ext in extension)) and not abort_copy: # think about some file to exclude, like .ini o .lnk
                         try:
                             progress(">>> Copying %s..." % ruta)
                             shutil.copy2(ruta, destino.path)
                             os.chmod(join(destino.path, e), 0644)
+                            s = None
                             if convert and ext in self.document_files:
-                                odf_converter(join(destino.path, e), 'odt')
+                                s = odf_converter(join(destino.path, e), 'odt')
                             elif convert and ext in self.presentation_files:
-                                odf_converter(join(destino.path, e), 'odp')
+                                s = odf_converter(join(destino.path, e), 'odp')
                             elif convert and ext in self.spread_files:
-                                odf_converter(join(destino.path, e), 'ods')
+                                s = odf_converter(join(destino.path, e), 'ods')
+                            if s:
+                                self.subprocesos.append(s)
+                                if len(self.subprocesos) > 3:
+                                    while self.subprocesos:
+                                        s = self.subprocesos.pop(0)
+                                        if s.wait() < 0:
+                                            i += 1
+                                if i >= 10:
+                                    convert = False
                             if function and delta:
                                 #for progress bar update
+                                function(1, 1)
                                 function(delta=delta)
+                            
                         except:
                             self.error('Imposible copiar ' + e)
                 else:
                     # Tipo desconocido, se omite
                     self.error('Skipping %s' % ruta)
+                    
             except error:
                 self.error('Failed Stat over ' + e)
+
 
     def get_subfolders(self):
         """Devuelve una lista con las subcarpetas"""
@@ -366,15 +393,26 @@ class copier(application):
         inc = 0
         if self.model:
             inc = 100.0/(self.files+1)
+        self.abort = False
+        global abort_copy
+        abort_copy = False
+        self.copied = 0
         self.option.copy(destino=self.destination, function=self.update_progress, delta=inc)
         if not self.option.errors:
             return 1
         else:
             print self.option.errors
 
+    def cancel(self):
+        """Método para detener la ejecución del a tarea        .
+        
+        """
+        self.abort = True
+        global abort_copy
+        abort_copy = True
 
 if __name__ == "__main__":
-    f = folder('/home/fernando/Audio')
+    f = folder('/home/fernando/Documentos')
     print f.get_name()
     print f.get_info()
     print 'freespace: %dKB' % f.get_free_space()

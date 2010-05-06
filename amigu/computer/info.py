@@ -176,7 +176,7 @@ class pc:
         try:
             udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
             for u in udi_list.splitlines():
-                if u.find('=') == -1:
+                if u.find('=') == -1 or u.find('uuid') <  0:
                     print u
                     continue
                 udi = u.split('=')[1]

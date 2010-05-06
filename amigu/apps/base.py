@@ -27,6 +27,7 @@ class application:
         self.status = 0
         self.progress = 0
         self.option = option
+        self.abort = False
         try:
             self.initialize()
         except:
@@ -56,6 +57,8 @@ class application:
         try:
             if self.do():
                 self.status = 1
+            if self.abort:
+                self.status = 0
         except:
             cla, exc, trbk = sys.exc_info()
             self.error = "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
@@ -69,6 +72,12 @@ class application:
         """
         pass
         
+    def cancel(self):
+        """Método para detener la ejecución del a tarea        .
+        
+        """
+        self.abort = True
+        
     def update_progress(self, value = 0, delta=0):
         """Actualiza la barra de progreso asociada a la tarea en con un 
         valor concreto o con un incremento relativo. Sólo válido para 
@@ -80,7 +89,14 @@ class application:
         """
         try:
             gtk.gdk.threads_enter()
-            if value: self.model.set_value(self.iter, 2, value)
+            if value and delta:
+                try:
+                    self.copied += value
+                    status = _("Migrando...") + " (%d/%d)" % (self.copied, self.files)
+                    self.model.set_value(self.iter, 3, status)
+                except:
+                    pass
+            elif value: self.model.set_value(self.iter, 2, value)
             elif delta: self.model.set_value(self.iter, 2, delta + float(self.model.get_value(self.iter, 2)))
         except: 
             pass

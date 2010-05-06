@@ -231,7 +231,7 @@ class winuser(regedit, generic_usr):
         pass
 
 
-    def get_tree_options(self, update=False):
+    def get_tree_options(self, update=True):
         """Devuele el árbol de opciones generado para el usario seleccionado.
         El objeto devuelto es de tipo gtk.TreeStore.
         
