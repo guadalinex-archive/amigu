@@ -242,12 +242,16 @@ class mailreader(application):
         
         """
         self.update_progress(5.0)
-        self.import_accounts()
-        self.import_mails()
-        self.update_progress(80.0)
-        self.import_contacts()
-        self.update_progress(90.0)
-        self.import_calendar()
+        if not self.abort:
+            self.import_accounts()
+        if not self.abort:
+            self.import_mails()
+            self.update_progress(80.0)
+        if not self.abort:
+            self.import_contacts()
+            self.update_progress(90.0)
+        if not self.abort:
+            self.import_calendar()
         return 1
 
     def import_mails(self):

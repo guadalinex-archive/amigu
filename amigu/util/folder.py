@@ -56,6 +56,8 @@ def odf_converter(file, format = 'pdf'):
     
     """
     s = None
+    if not exists("/usr/bin/unoconv"):
+        return s
     try:
         #os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
         s = subprocess.Popen(["unoconv", "-f", format, file])
