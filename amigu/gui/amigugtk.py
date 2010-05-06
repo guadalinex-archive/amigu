@@ -74,6 +74,7 @@ class Asistente:
         # Atributos
         self.paso = 1
         self.url = "http://forja.guadalinex.org/webs/amigu/"
+        self.pc = None
 
         self.watch = gtk.gdk.Cursor(gtk.gdk.WATCH)
         self.hilo = None
@@ -121,12 +122,12 @@ class Asistente:
         self.options.append_column( column6 )
 
         #Resumen
-        self.tasks = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_FLOAT, gobject.TYPE_STRING, object)
+        self.tasks = gtk.ListStore( gobject.TYPE_STRING, gobject.TYPE_STRING, gobject.TYPE_FLOAT, gobject.TYPE_STRING, gobject.TYPE_INT, object)
         self.resumen = gtk.TreeView(self.tasks)
         column8 = gtk.TreeViewColumn(_("Tarea"), rndr, text=0)
         column9 = gtk.TreeViewColumn("", rndr_pixbuf, stock_id=1)
         progressrenderer = gtk.CellRendererProgress()
-        column10 = gtk.TreeViewColumn(_("Progreso"), progressrenderer, value=2, text=3)
+        column10 = gtk.TreeViewColumn(_("Progreso"), progressrenderer, value=2, text=3, pulse=4)
         progressrenderer.set_property('height', 10)
         self.resumen.append_column( column9 )
         self.resumen.append_column( column8 )
@@ -145,7 +146,7 @@ class Asistente:
         
         separador1 = gtk.HSeparator()
         separador2 = gtk.HSeparator()
-        self.tooltips = gtk.Tooltips()
+        
         
         box_statico_sup = gtk.HBox(False, 1)#Creo lo que se va a quedar siempre en la ventana
         box_variable = gtk.VBox(False, 1)#Creo lo que va a ir variando
@@ -310,7 +311,8 @@ class Asistente:
 
         boton22 = gtk.Button(label = _("Seleccionar otra carpeta"), stock = None)
         boton22.connect_object("clicked", self.buscar, self.window)
-        self.tooltips.set_tip(boton22, _("Elija la carpeta Destino donde quiere guardar los archivos"))
+        #tip22 = gtk.Tooltip(boton22)
+        #tip22.set_text(_("Elija la carpeta Destino donde quiere guardar los archivos"))
 
         frame5 = gtk.Frame(_("Opciones de migración"))
         self.arbol_inicializado = False
@@ -332,7 +334,7 @@ class Asistente:
         frame2.add(self.box_opcioneshor1)
         self.box_opcioneshor3.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
         self.box_opcioneshor3.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor4.pack_start(self.datos_req, True, True, 0)
+        self.box_opcioneshor4.pack_start(self.datos_req, False, True, 0)
         self.box_opcioneshor4.pack_start(self.datos_libre, True, True, 0)
         self.box_opcioneshor1.pack_start(self.box_opcionesver3, True, True, 0)
         self.box_opcionesver3.pack_start(self.box_opcioneshor3, True, False, 0)
@@ -345,7 +347,7 @@ class Asistente:
         self.box_opcionesver4.pack_start(self.box_opcioneshor6, True, True, 0)
         self.box_opcioneshor5.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
         self.box_opcioneshor5.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor6.pack_start(self.conf_req, True, False, 0)
+        self.box_opcioneshor6.pack_start(self.conf_req, False, True, 0)
         self.box_opcioneshor6.pack_start(self.conf_libre, True, False, 0)
         self.box_opcioneshor2.pack_start(self.frame4, True, False, 0)
         self.box_opcioneshor2.pack_start(frame2, True, False, 0)
@@ -388,7 +390,7 @@ class Asistente:
         dialog = gtk.AboutDialog()
         dialog.set_name("AMIGU")
         dialog.set_version(ver)
-        dialog.set_copyright("Copyright © 2006-2009 Junta de Andalucía")
+        dialog.set_copyright("Copyright © 2006-2010 Junta de Andalucía")
         dialog.set_website(self.url)
         dialog.set_website_label(self.url)
         dialog.set_authors([
@@ -443,10 +445,10 @@ class Asistente:
         h1.pack_start(mensaje, True, False, 10)
         self.advertencia.show_all()
         self.advertencia.set_default_response(gtk.RESPONSE_ACCEPT)
-        self.advertencia.run()
-        #r = self.advertencia.response()
-        self.wait = False
+        r = self.advertencia.run()
         self.advertencia.destroy()
+        self.advertencia = None
+        self.wait = False
 
 
 
@@ -533,6 +535,7 @@ class Asistente:
         """Finaliza la ejecución del asistente y limpiar los archivos temporales"""
         if self.working:
             self.abort = True
+            self.tarea.cancel()
             self.pause = False
             return 0
         print _("Saliendo del asistente")
@@ -542,6 +545,10 @@ class Asistente:
             print _("Eliminando archivos temporales...")
             model.get_value(iter, 3).clean()
             iter = self.list_users.iter_next(iter)
+            
+        if self.pc:
+            print _("Desmontando particiones...")
+            self.pc.umount_all_partitions()
         gtk.main_quit()
 
     def etapa_siguiente(self, widget):
@@ -563,7 +570,7 @@ class Asistente:
         self.window.set_focus(self.forward_boton)
 
 
-    def actualizar_espacio(self, widget=None):
+    def actualizar_espacio(self, widget=None, other=None):
         """Actualiza el espacio libre en disco"""
         destino = self.entry.get_text()
         if os.path.exists(destino):
@@ -624,13 +631,13 @@ class Asistente:
 
             model, iter = self.users.get_selection().get_selected()
             self.selected_user = model.get_value(iter, 3)
-            if self.selected_user.os.find('MS') == -1:
+            if self.selected_user.os.find('Windows') == -1:
                 self.paso = 2
                 self.box_usuarios.show()
                 self.dialogo_advertencia(_("Opción no disponible actualmente. \nSeleccione otro tipo de usuario"))
                 return 0
             self.imagen_usuario.set_from_pixbuf(gtk.gdk.pixbuf_new_from_file_at_size(self.selected_user.get_avatar(), 80, 80))
-            self.cuenta.set_markup('<b>%s</b>\n<i>%s</i>'% (self.selected_user.get_name(), self.selected_user.os))
+            self.cuenta.set_markup('<b>%s</b>\n<span face="arial" size="8000"><i>%s</i></span>'% (self.selected_user.get_name(), self.selected_user.os))
             self.labelpri.set_markup('<span face="arial" size="12000" foreground="chocolate"><b>'+_('OPCIONES DE MIGRACIÓN')+'</b></span>')
             #self.options.set_model(self.selected_user.get_tree_options())
             
@@ -703,10 +710,14 @@ class Asistente:
     def load_options(self):
         tree_options = self.selected_user.get_tree_options()
         gtk.gdk.threads_enter()
-        self.options.set_model(tree_options)
-        self.options.expand_all()
-        self.forward_boton.set_sensitive(True)
-        self.advertencia.destroy()
+        try:
+            self.advertencia.response(gtk.RESPONSE_CLOSE)
+        except:
+            pass
+        else:
+            self.options.set_model(tree_options)
+            self.options.expand_all()
+            self.forward_boton.set_sensitive(True)
         gtk.gdk.threads_leave()
         self.wait = False
 
@@ -715,12 +726,12 @@ class Asistente:
         gtk.gdk.threads_enter()
         self.label2.set_markup('<b>'+_("Buscando usuarios de otros sistemas...")+ '</b>')
         gtk.gdk.threads_leave()
-        pc = mipc()
-        pc.check_all_partitions()
+        self.pc = mipc()
+        self.pc.check_all_partitions()
         self.usuarios = {}
-        wusers = pc.get_win_users()
-        xusers = pc.get_lnx_users()
-        musers = pc.get_mac_users()
+        wusers = self.pc.get_win_users()
+        xusers = self.pc.get_lnx_users()
+        musers = self.pc.get_mac_users()
         gtk.gdk.threads_enter()
         self.list_users.clear()
         self.users.set_model(self.list_users)
@@ -731,7 +742,7 @@ class Asistente:
 
         for u, s in wusers.iteritems():
             try:
-                usuario = mswin.winuser(u, pc, s)
+                usuario = mswin.winuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Windows.") + "\n"
                 continue
@@ -739,7 +750,7 @@ class Asistente:
                 self.insertar_usuario(usuario)
         for u, s in xusers.iteritems():
             try:
-                usuario = openos.freeuser(u, pc, s)
+                usuario = openos.freeuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Unix/Linux.") + "\n"
                 continue
@@ -747,7 +758,7 @@ class Asistente:
                 self.insertar_usuario(usuario)
         for u, s in musers.iteritems():
             try:
-                usuario = macos.macuser(u, pc, s)
+                usuario = macos.macuser(u, self.pc, s)
             except:
                 aviso += _("No se pudo acceder a algunos de los usuarios de Mac OS.") + "\n"
                 continue
@@ -812,7 +823,7 @@ class Asistente:
     def recorrer_tareas(self, iterator, model):
         tarea = model.get_value(iterator, 4)
         if tarea and model.get_value(iterator, 1):
-            self.tasks.append([model.get_value(iterator, 3),gtk.STOCK_MEDIA_PAUSE,0,_("Esperando..."), tarea])
+            self.tasks.append([model.get_value(iterator, 3),gtk.STOCK_MEDIA_PAUSE,0,_("Esperando..."), -1, tarea])
             self.n_tasks += 1
         if model.iter_children(iterator):
             #caso recursivo
@@ -852,19 +863,20 @@ class Asistente:
         self.working = True
         self.abort = False
         self.pause = False
+        self.progreso.set_fraction(0)
         while task and not self.abort:
-            tarea = self.tasks.get_value(task, 4)
-            if tarea:
+            self.tarea = self.tasks.get_value(task, 5)
+            if self.tarea:
                 gtk.gdk.threads_enter()
                 self.tasks.set_value(task, 1, gtk.STOCK_EXECUTE)
                 por = self.progreso.get_fraction() + (1.0/(self.n_tasks+1))
                 if por > 1:
                     por = 0.0
                 self.progreso.set_fraction(por)
-                self.progreso.set_text(_("Importando") + ' '+ tarea.description)
-                if tarea.size > 102400:
+                self.progreso.set_text(_("Importando") + ' '+ self.tarea.description)
+                if self.tarea.size > 102400:
                     self.tasks.set_value(task, 3, _("Migrando...(Puede llevar algún rato)"))
-                elif tarea.size > 1024000:
+                elif self.tarea.size > 1024000:
                     self.tasks.set_value(task, 3, _("Migrando...(Tenga paciencia)"))
                 else:
                     self.tasks.set_value(task, 3, _("Migrando..."))
@@ -872,23 +884,28 @@ class Asistente:
                 self.resumen.set_cursor(path)
                 gtk.gdk.threads_leave()
                 time.sleep(0.5)
-                if isinstance(tarea, copier):
-                    tarea.set_destination(self.destino)
+                if isinstance(self.tarea, copier):
+                    self.tarea.set_destination(self.destino)
                 try:
-                    tarea.run(self.tasks, task)
+                    self.tarea.run(self.tasks, task)
                 except:
-                    print tarea.error
+                    print self.tarea.error
                 gtk.gdk.threads_enter()
-                if tarea.status > 0:
+                if self.tarea.status > 0:
                     self.tasks.set_value(task, 1, gtk.STOCK_YES)
                     self.tasks.set_value(task, 2, 100.0)
                     self.tasks.set_value(task, 3, _("Completado"))
-                elif tarea.status < 0:
+                elif self.tarea.status < 0:
                     self.tasks.set_value(task, 1, gtk.STOCK_NO)
                     self.tasks.set_value(task, 2, 0.0)
                     self.tasks.set_value(task, 3, _("Fallido"))
-                    print tarea.error
+                elif self.tarea.status == 0:
+                    self.tasks.set_value(task, 1, gtk.STOCK_NO)
+                    self.tasks.set_value(task, 2, 0.0)
+                    self.tasks.set_value(task, 3, _("Abortado"))
+                self.tasks.set_value(task, 4, -1)
                 gtk.gdk.threads_leave()
+                print self.tarea.error
             while self.pause:
                 time.sleep(1.0)
             task = self.tasks.iter_next(task)
@@ -908,13 +925,14 @@ class Asistente:
             self.stop_boton.hide()
             self.exit_boton.show_all()
             self.about_boton.show()
-            self.dialogo_advertencia(_("Algunos cambios tendrán efecto cuando reinicie su equipo"))
+            #self.dialogo_advertencia(_("Algunos cambios tendrán efecto cuando reinicie su equipo"))
             gtk.gdk.threads_leave()
+            
 
 
 def run():
     print _("Asistente de MIgración de Guadalinex")
-    print '(C) 2006-2007 Fernando Ruiz Humanes, Emilia Abad Sanchez\nThis program is freely redistributable under the terms\nof the GNU General Public License.\n'
+    print '(C) 2006-2010 Fernando Ruiz Humanes, Emilia Abad Sanchez\nThis program is freely redistributable under the terms\nof the GNU General Public License.\n'
     base = Asistente()
     base.main()
 

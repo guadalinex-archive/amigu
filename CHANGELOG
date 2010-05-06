@@ -97,5 +97,14 @@ version 0.7.2:
 + added support for Favorites of MS internet explorer
 + added support for Windows Mail
 + added support for Windows Live Mail
-+ added support for MS Office Outlook XP/2002/2003/2007
++ added full support for MS Office Outlook XP/2002/2003/2007
++ added support for Windows Calendar
++ added support for Windows Contacts
+
+version 0.7.3:
++ commented code
+
+version 0.7.5:
++ removed dependecies: hal, gnome-mount
++ addede dependecies: readpst, os-prober, python-gksu2
 

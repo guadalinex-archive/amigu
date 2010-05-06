@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+DEB_PYTHON_SYSTEM=pycentral
+DBK2MAN_XLS=/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xml
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/python-distutils.mk
+
+
+# Add here any variable or target overrides you need.
+
+build/amigu::
+	#xsltproc --nonet $(DBK2MAN_XLS) debian/amigu.xml
+	
+install/amigu::
+	
+clean::
+	

@@ -1,0 +1,25 @@
+amigu (0.7.5-1) lucid; urgency=low
+
+  * Fixed Bugs
+  * Removed dependencie:
+    - gnome-mount (DEPRECATED)
+  * Added dependencies:
+    - os-prober
+    - gksudo
+
+ -- Fernando Ruiz <fruiz@forja.guadalinex.org>  Wed, 5 May 2010 16:31:34 +0200
+
+
+amigu (0.7.3-2) jaunty; urgency=low
+
+  * Cleaned up package:
+    - Removed unused templates
+    - Removed build temp files
+
+ -- Roberto C. Morano <rcmorano@emergya.es>  Fri, 22 May 2009 12:01:34 +0200
+
+amigu (0.7.3-1) testing; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Fernando Ruiz <fruiz@forja.guadalinex.org>  Fri, 22 May 2009 12:01:34 +0200

@@ -4,16 +4,17 @@
 import commands
 import re
 import os
+import tempfile
 
 class partition:
     """Clase para el manejo de particiones del sistema"""
 
-    def __init__(self, dev, fs=None):
+    def __init__(self, dev, ops=None, fs=None):
         """Constructor de la clase
         
         Argumentos de entrada:
         dev -- dispositivo de bloques
-        fs -- sistema de ficheros del dispositivo (default None)
+        os -- sistema de operativo instalado (default None)
         """
         if os.path.exists(dev):
             self.dev = dev
@@ -21,8 +22,9 @@ class partition:
             raise Exception(dev, "Invalid device")
         self.filesystem = fs
         self.mountpoint = None
-        self.installed_os = None
+        self.installed_os = ops
         self.users_path = []
+        
 
     def check(self):
         """Monta la partición y comprueba su contenido"""
@@ -66,9 +68,21 @@ class partition:
                     pass
             f.close()
             if not mounted and automount and not error:
-                os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
-                mounted = self.is_mounted()
+                #os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
+                os.system('gksudo \"mount -o ro %s %s\"' % (self.dev, tempfile.mkdtemp()))
+                #gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
+                mounted = self.is_mounted(False)
             return mounted
+            
+    def umount(self):
+        if self.mountpoint and self.mountpoint.startswith('/tmp'):
+            #gksu2.sudo('umount %s' % self.dev)
+            os.system('gksudo \"umount %s\"' % self.dev)
+            try:
+                os.rmdir(self.mountpoint)
+            except:
+                pass
+           
 
     def detect_os(self):
         """Detecta el tipo de sistema operativo que contiene la partición.
@@ -76,6 +90,8 @@ class partition:
         existentes en él
         
         """
+        if self.installed_os:
+            return 1
         if self.filesystem == 'vfat':
             if os.path.exists(os.path.join(self.mountpoint, 'Documents and Settings')):
                 self.installed_os = "MS Windows 2000/XP"
@@ -110,7 +126,7 @@ class partition:
                 ruta = os.path.join(self.mountpoint, 'Documents and Settings', d)
                 if (not d in excluir) and (os.path.exists(os.path.join(ruta, 'NTUSER.DAT')) or os.path.exists(os.path.join(ruta, 'ntuser.dat'))):
                     self.users_path.append(ruta)
-        elif self.installed_os.find('Vista') >= 0:
+        elif self.installed_os.find('Vista') >= 0 or self.installed_os.find('7') >= 0:
             # Usuarios de Windows Vista
             documents = os.listdir(os.path.join(self.mountpoint, "Users"))
             for d in documents:
@@ -140,9 +156,9 @@ class pc:
         """Constructor de la clase"""
         self.errors = []
         self.partitions = []
-        for dev, fs in self.get_devices().iteritems():
+        for dev, os in self.get_devices().iteritems():
             try:
-                self.partitions.append(partition(dev, fs))
+                self.partitions.append(partition(dev, os))
             except:
                 pass
         self.win_users = {}
@@ -151,31 +167,28 @@ class pc:
         self.win_parts = []
 
 
-    def get_devices(self, fs = []):
-        """Busca las particiones del equipo que contengan el sistema
-        de ficheros especificado. Por defecto busca todas las disponibles
-        
-        Argumentos de entrada:
-        fs -- lista con los sistemas de ficheros a buscar (default [])
-        
+    def get_devices(self):
+        """Busca las particiones del equipo que contengan sistemas
+        operativos instalados
         """
+        listos = commands.getoutput('gksudo os-prober')
         r = {}
-        udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
-        for u in udi_list.splitlines():
-            if u.find('=') == -1:
-                print u
-                continue
-            udi = u.split('=')[1]
-            dev = commands.getoutput('hal-get-property --udi %s --key block.device' % udi)
-            volume = commands.getoutput('hal-get-property --udi %s --key info.product' % udi)
-            l = re.compile('Volume \((?P<filesystem>\w+)\)')
-            m = l.match(volume)
+        try:
+            udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
+            for u in udi_list.splitlines():
+                if u.find('=') == -1 or u.find('uuid') <  0:
+                    print u
+                    continue
+                udi = u.split('=')[1]
+                dev = commands.getoutput('hal-get-property --udi %s --key block.device' % udi)
+                r[dev]=None
+        except:
+            pass
+        for ops in listos.splitlines():
             try:
-                f = m.group('filesystem')
+                r[ops.split(':')[0]]=ops.split(':')[1]
             except:
-                f = None
-            if not fs or f in fs:
-                r[dev]=f
+                pass
         return r
 
     def check_all_partitions(self):
@@ -184,6 +197,12 @@ class pc:
         for p in self.partitions:
             p.check()
             print unicode(p)
+            
+    def umount_all_partitions(self):
+        """Desmonta todas las particiones previamente usadas"""
+        print "Liberando particiones..."
+        for p in self.partitions:
+            p.umount()
 
     def error(self, e):
         """Almacena los errores en tiempo de ejecución  OBSOLETO """
@@ -192,7 +211,7 @@ class pc:
     def get_win_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Windows"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Windows') > 0:
+            if p.installed_os and p.installed_os.find('Windows') >= 0:
                 for path in p.users_path:
                     self.win_users[path] = p.installed_os
         return self.win_users
@@ -200,7 +219,7 @@ class pc:
     def get_lnx_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Linux"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Linux') > 0:
+            if p.installed_os and p.installed_os.find('Linux') >= 0:
                 for path in p.users_path:
                     self.lin_users[path] = p.installed_os
         return self.lin_users
@@ -208,7 +227,7 @@ class pc:
     def get_mac_users(self):
         """Devuelve una lista con la ruta a las carpetas de los usuarios de Mac OS"""
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Mac') > 0:
+            if p.installed_os and p.installed_os.find('Mac') >= 0:
                 for path in p.users_path:
                     self.mac_users[path] = p.installed_os
         return self.mac_users
@@ -217,7 +236,7 @@ class pc:
         """Devuelve las particiones que contienen un Sistema Operativo Windows instalado"""
         r = []
         for p in self.partitions:
-            if p.installed_os and p.installed_os.find('Windows') >= 0:
+            if p.installed_os and p.installed_os.find('Windows') >= 0 or p.filesystem == "fuseblk":
                 r.append(p)
         self.win_parts = r
         return r

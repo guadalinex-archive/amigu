@@ -4,7 +4,9 @@ import uuid
 import sys
 import traceback
 import gtk
+import sys
 from amigu import _
+from threading import Timer
 
 class application:
     """Clase abstracta el manejo de aplicaciones y opciones de migración"""
@@ -27,11 +29,13 @@ class application:
         self.status = 0
         self.progress = 0
         self.option = option
+        self.abort = False
+        self.timer = None
         try:
             self.initialize()
         except:
             cla, exc, trbk = sys.exc_info()
-            print "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
+            print "Error: %s (%s)\nArgs: %s\nTrace: %s" % (cla.__name__, self.name, exc, traceback.format_tb(trbk, 10))
             raise Exception
         self.error = ''
 
@@ -56,10 +60,13 @@ class application:
         try:
             if self.do():
                 self.status = 1
+            if self.abort:
+                self.status = 0
         except:
             cla, exc, trbk = sys.exc_info()
             self.error = "Error: %s\nArgs: %s\nTrace: %s" % (cla.__name__, exc, traceback.format_tb(trbk, 10))
-            
+        finally:
+            self.pulse_stop()
 
 
     def do(self):
@@ -68,6 +75,12 @@ class application:
         
         """
         pass
+        
+    def cancel(self):
+        """Método para detener la ejecución del a tarea        .
+        
+        """
+        self.abort = True
         
     def update_progress(self, value = 0, delta=0):
         """Actualiza la barra de progreso asociada a la tarea en con un 
@@ -80,8 +93,63 @@ class application:
         """
         try:
             gtk.gdk.threads_enter()
-            if value: self.model.set_value(self.iter, 2, value)
+            if value and delta:
+                try:
+                    self.copied += value
+                    status = _("Migrando...") + " (%d/%d)" % (self.copied, self.files)
+                    self.model.set_value(self.iter, 3, status)
+                except:
+                    pass
+            elif value: self.model.set_value(self.iter, 2, value)
             elif delta: self.model.set_value(self.iter, 2, delta + float(self.model.get_value(self.iter, 2)))
+        except: 
+            pass
+        finally:
+            gtk.gdk.threads_leave()
+            
+    def pulse_start(self):
+        """Inicia  el indicador de actividad en la barra de progreso. Sólo válido para 
+        la interfaz gráfica de Amigu
+        
+        
+        """
+        try:
+            gtk.gdk.threads_enter()
+            self.model.set_value(self.iter, 4, 1)
+            self.timer = Timer(0.05, self.update_pulse)
+            self.timer.start()
+        except: 
+            pass
+        finally:
+            gtk.gdk.threads_leave()
+            
+    
+    def update_pulse(self):
+        """Actualiza  el indicador de actividad en la barra de progreso. Sólo válido para 
+        la interfaz gráfica de Amigu
+        
+        
+        """
+        try:
+            gtk.gdk.threads_enter()
+            self.model.set_value(self.iter, 4, self.model.get_value(self.iter, 4) + 1)
+            self.timer = Timer(0.05, self.update_pulse)
+            self.timer.start()
+        except: 
+            pass
+        finally:
+            gtk.gdk.threads_leave()
+    
+    def pulse_stop(self):
+        """Detiene el indicador de actividad en la barra de progreso. Sólo válido para 
+        la interfaz gráfica de Amigu
+        
+        
+        """
+        try:
+            gtk.gdk.threads_enter()
+            self.model.set_value(self.iter, 4,-1)
+            self.timer.cancel()
         except: 
             pass
         finally:

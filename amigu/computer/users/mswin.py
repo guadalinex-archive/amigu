@@ -3,8 +3,10 @@
 import os
 import re
 import glob
-from amigu.apps.base import application
-from amigu.apps.win import messenger, mail, webbrowser, settings
+from amigu.apps.win.messenger import base as instantmessenger
+from amigu.apps.win.webbrowser import *
+from amigu.apps.win.settings import *
+from amigu.apps.win.mail import *
 from amigu.computer.users.base import generic_usr
 from amigu.util.folder import *
 from amigu.util.winreg import regedit
@@ -96,7 +98,7 @@ class winuser(regedit, generic_usr):
 
     def get_WINDOWS_MAIL_accounts(self):
         """Devuelve un dicccionario con los archivos que
-        contienen la configuración de correo de Windows Mail. 
+        contienen la configuración de correo de Windows  
         
         """
         dict = {}
@@ -110,7 +112,7 @@ class winuser(regedit, generic_usr):
         
     def get_WINDOWS_LIVE_MAIL_accounts(self):
         """Devuelve un dicccionario con los archivos que
-        contienen la configuración de correo de Windows Live Mail. 
+        contienen la configuración de correo de Windows Live  
         
         """
         dict = {}
@@ -231,7 +233,7 @@ class winuser(regedit, generic_usr):
         pass
 
 
-    def get_tree_options(self, update=False):
+    def get_tree_options(self, update=True):
         """Devuele el árbol de opciones generado para el usario seleccionado.
         El objeto devuelto es de tipo gtk.TreeStore.
         
@@ -272,8 +274,11 @@ class winuser(regedit, generic_usr):
             except:
                 pass
         for f in folder_2_copy:
-            c = self.get_copier(f)
-            self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+            try:
+                c = self.get_copier(f)
+                self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+            except:
+                pass
 
 
         # configuraciones
@@ -282,19 +287,19 @@ class winuser(regedit, generic_usr):
         # Bookmarks
         navegadores = []
         try:
-            navegadores.append(webbrowser.winfirefox(self))
+            navegadores.append(firefox.firefox(self))
         except:
             pass
         try:
-            navegadores.append(webbrowser.iexplorer(self))
+            navegadores.append(explorer.iexplorer(self))
         except:
             pass
         try:
-            navegadores.append(webbrowser.opera(self))
+            navegadores.append(opera.opera(self))
         except:
             pass
         try:
-            navegadores.append(webbrowser.chrome(self))
+            navegadores.append(chrome.chrome(self))
         except:
             pass
         if navegadores:
@@ -308,25 +313,25 @@ class winuser(regedit, generic_usr):
         for k, v in out.iteritems():
             try:
                 if k == "Outlook12":
-                    lectores.append(mail.outlook12(self, v))
+                    lectores.append(outlook.outlook12(self, v))
                 elif k == "Outlook11":
-                    lectores.append(mail.outlook11(self, v))
+                    lectores.append(outlook.outlook11(self, v))
                 elif k == "Outlook Express":
-                    lectores.append(mail.outlook_express(self, v))
+                    lectores.append(outlook.outlook_express(self, v))
                 elif k == "Outlook9":
-                    lectores.append(mail.outlook9(self, v))
+                    lectores.append(outlook.outlook9(self, v))
             except:
                 pass
         try:
-            lectores.append(mail.windowsmail(self, self.get_WINDOWS_MAIL_accounts().values()))
+            lectores.append(live.windowsmail(self, self.get_WINDOWS_MAIL_accounts().values()))
         except:
             pass
         try:
-            lectores.append(mail.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
+            lectores.append(live.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
         except:
             pass
         try:
-            lectores.append(mail.winthunderbird(self, self.get_THUNDERBIRD_accounts()))
+            lectores.append(thunderbid.thunderbird(self, self.get_THUNDERBIRD_accounts()))
         except:
             pass
         if lectores:
@@ -335,7 +340,7 @@ class winuser(regedit, generic_usr):
                 self.tree_options.append(lec, [l.name, None, l.size, l.description, l] )
 
         # Instant Messenger
-        cuentas = messenger.get_IM_accounts(self)
+        cuentas = instantmessenger.get_IM_accounts(self)
         if cuentas:
             im = self.tree_options.append(conf, [_("Mensajería Instantánea"), None, None, _('Cuentas de IM'), None] )
         for a in cuentas:
@@ -344,34 +349,37 @@ class winuser(regedit, generic_usr):
         # Otras configuraciones
         configuraciones = []
         try:
-            configuraciones.append(settings.wallpaper(self))
+            configuraciones.append(misc.wallpaper(self))
         except:
             pass
         try:
-            configuraciones.append(settings.fonts_installer(self))
+            configuraciones.append(misc.fonts_installer(self))
         except:
             pass
         try:
-            configuraciones.append(settings.emule(self))
+            configuraciones.append(emule.emule(self))
         except:
             pass
         try:
-            configuraciones.append(settings.avatar(self))
+            configuraciones.append(misc.avatar(self))
         except:
             pass
         try:
-            configuraciones.append(settings.calendar(self))
+            configuraciones.append(planner.calendar(self))
         except:
             pass
         try:
-            configuraciones.append(settings.contacts(self))
+            configuraciones.append(addressbook.contacts(self))
         except:
             pass
 
-        if configuraciones:
+        if len(configuraciones):
             cfg = self.tree_options.append(conf, [_("Otros"), None, None, _('Otras opciones de configuración'), None] )
             for c in configuraciones:
-                self.tree_options.append(cfg, [c.name, None, c.size, c.description, c] )
+                try:
+                    self.tree_options.append(cfg, [c.name, None, c.size, c.description, c] )
+                except:
+                    pass
 
         return self.tree_options
 #end class win_user
