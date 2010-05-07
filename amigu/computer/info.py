@@ -97,13 +97,13 @@ class partition:
                 self.installed_os = "MS Windows 2000/XP"
             else:
                 self.installed_os = "MS Windows"
-        elif self.filesystem == 'ntfs':
+        elif self.filesystem == 'ntfs' or self.filesystem == 'fuseblk':
             if os.path.exists(os.path.join(self.mountpoint, 'Users')):
                 self.installed_os = "MS Windows Vista/Se7en"
             elif os.path.exists(os.path.join(self.mountpoint, 'Documents and Settings')):
                 self.installed_os = "MS Windows 2000/XP"
-            else:
-                self.installed_os = "MS Windows"
+            elif self.filesystem == 'fuseblk':
+                self.installed_os = "Unknown"
         elif self.filesystem in ('ext2', 'ext3', 'reiserfs', 'jfs', 'xfs', 'ext4'):
             if os.path.exists(os.path.join(self.mountpoint, 'bin')) or os.path.exists(os.path.join(self.mountpoint, 'lost+found')):
                 self.installed_os = "Unix/Linux"
@@ -121,21 +121,24 @@ class partition:
             return 0
         if self.installed_os.find('XP') >= 0:
             # Usuarios de Windows XP
-            documents = os.listdir(os.path.join(self.mountpoint, "Documents and Settings"))
+            f = os.path.join(self.mountpoint, "Documents and Settings")
+            documents = os.path.exists(f) and os.listdir(f) or []
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Documents and Settings', d)
                 if (not d in excluir) and (os.path.exists(os.path.join(ruta, 'NTUSER.DAT')) or os.path.exists(os.path.join(ruta, 'ntuser.dat'))):
                     self.users_path.append(ruta)
         elif self.installed_os.find('Vista') >= 0 or self.installed_os.find('7') >= 0:
             # Usuarios de Windows Vista
-            documents = os.listdir(os.path.join(self.mountpoint, "Users"))
+            f = os.path.join(self.mountpoint, "Users")
+            documents = os.path.exists(f) and os.listdir(f) or []
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Users', d)
                 if (not d in excluir) and (os.path.exists(os.path.join(ruta, 'NTUSER.DAT')) or os.path.exists(os.path.join(ruta, 'ntuser.dat'))):
                     self.users_path.append(ruta)
         elif self.installed_os.find('Apple Mac') >= 0:
             # Usuarios de Mac
-            documents = os.listdir(os.path.join(self.mountpoint, "Users"))
+            f = os.path.join(self.mountpoint, "Users")
+            documents = os.path.exists(f) and os.listdir(f) or []
             for d in documents:
                 ruta = os.path.join(self.mountpoint, 'Users', d)
                 if (not d in excluir) and not d.startswith('.'):
@@ -177,7 +180,7 @@ class pc:
             udi_list = commands.getoutput('lshal | grep  ^udi.*volume')
             for u in udi_list.splitlines():
                 if u.find('=') == -1 or u.find('uuid') <  0:
-                    print u
+                    #print u
                     continue
                 udi = u.split('=')[1]
                 dev = commands.getoutput('hal-get-property --udi %s --key block.device' % udi)

@@ -3,7 +3,7 @@
 import os
 import re
 import glob
-from amigu.apps.win.messenger import base as instantmessenger
+from amigu.apps.win.messenger import *
 from amigu.apps.win.webbrowser import *
 from amigu.apps.win.settings import *
 from amigu.apps.win.mail import *
@@ -340,7 +340,21 @@ class winuser(regedit, generic_usr):
                 self.tree_options.append(lec, [l.name, None, l.size, l.description, l] )
 
         # Instant Messenger
-        cuentas = instantmessenger.get_IM_accounts(self)
+        cuentas = []
+        try:
+            cuentas.append(live.windowslive(self, self.get_MSN_account()))
+        except:
+            pass
+        for ac in self.get_messenger_accounts():
+            try:
+                cuentas.append(live.windowslive(self, ac))
+            except:
+                pass
+        try:
+            cuentas.append(gtalk.gtalk(self))
+        except:
+            pass
+        
         if cuentas:
             im = self.tree_options.append(conf, [_("Mensajería Instantánea"), None, None, _('Cuentas de IM'), None] )
         for a in cuentas:

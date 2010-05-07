@@ -1,1 +1,1 @@
-__all__ = ["outlook", "live", "thunderbird"]
+__all__ = ["outlook", "livemail", "thunderbird"]

@@ -4,9 +4,8 @@ import os
 import re
 from amigu.util.folder import *
 from amigu.apps.base import application
-from amigu.apps.win.messenger.base import gaim, msn2amsn
+from amigu.apps.win.messenger.base import gaim
 from amigu import _
-
 
 
 class windowslive(application):
@@ -35,7 +34,5 @@ class windowslive(application):
             pidgin.config_msn(self.option)
             #self.update_progress(60.0)
             #kopte.config_msn(self.option)
-            #self.update_progress(85.0)
-            msn2amsn(self.option)
         self.pulse_stop()
         return 1
