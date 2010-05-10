@@ -10,7 +10,7 @@ class emule(application):
     
     def initialize(self):
         self.name = _("eMule")
-        self.description = _("Configuración de eMule")+"\n"+_("Seleccione también la opción Archivos")
+        self.description = _("Configuración de eMule")
         self.cfg_dir = self.get_configuration()
         self.inc_dir, self.tmp_dir = None, None
         if not self.cfg_dir:

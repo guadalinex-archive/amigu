@@ -3,6 +3,7 @@
 import os
 import re
 import glob
+from time import sleep
 from amigu.apps.win.messenger import *
 from amigu.apps.win.webbrowser import *
 from amigu.apps.win.settings import *
@@ -233,7 +234,7 @@ class winuser(regedit, generic_usr):
         pass
 
 
-    def get_tree_options(self, update=True):
+    def get_tree_options(self, update=False):
         """Devuele el árbol de opciones generado para el usario seleccionado.
         El objeto devuelto es de tipo gtk.TreeStore.
         
@@ -245,6 +246,7 @@ class winuser(regedit, generic_usr):
             if update:
                 self.tree_options.clear()
             else:
+                sleep(2.0)
                 return self.tree_options
         else:
             self.tree_options = TreeStore( str, 'gboolean', str, str, object)
@@ -328,11 +330,11 @@ class winuser(regedit, generic_usr):
             except:
                 pass
         try:
-            lectores.append(live.windowsmail(self, self.get_WINDOWS_MAIL_accounts().values()))
+            lectores.append(livemail.windowsmail(self, self.get_WINDOWS_MAIL_accounts().values()))
         except:
             pass
         try:
-            lectores.append(live.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
+            lectores.append(livemail.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
         except:
             pass
         try:
@@ -418,7 +420,9 @@ def test():
         try:
             print u.get_OUTLOOK_accounts()
             print u.get_THUNDERBIRD_accounts()
-            u.get_tree_options()
+            print u.get_WINDOWS_LIVE_MAIL_accounts().values()
+            
+            #u.get_tree_options()
         except:
             u.clean()
 

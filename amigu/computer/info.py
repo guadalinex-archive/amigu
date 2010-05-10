@@ -68,7 +68,7 @@ class partition:
                     pass
             f.close()
             if not mounted and automount and not error:
-                os.system('gvfs-mount -m -d %s' % (self.dev))
+                os.system('gvfs-mount -d %s' % (self.dev))
                 #os.system('gksudo \"mount -o ro %s %s\"' % (self.dev, tempfile.mkdtemp()))
                 #gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
                 mounted = self.is_mounted(False)
@@ -186,7 +186,7 @@ class pc:
             pass
         for ops in listos.splitlines():
             try:
-                r[ops.split(':')[0]]=ops.split(':')[1]
+                r[ops.split(':')[0]]=ops.split(':')[1].replace(" (loader)","")
             except:
                 pass
         return r
