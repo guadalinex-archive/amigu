@@ -108,3 +108,11 @@ class emule(application):
             pass
         else:
             a.close()
+            
+    def do(self):
+        self.update_progress(10.0)
+        a = self.config_aMule()
+        self.update_progress(30.0)
+        b = self.import_files()
+        self.update_progress(90.0)
+        return (a and b)

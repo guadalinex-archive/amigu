@@ -4,7 +4,7 @@
 import commands
 import re
 import os
-import tempfile
+#import tempfile
 
 class partition:
     """Clase para el manejo de particiones del sistema"""
@@ -68,20 +68,17 @@ class partition:
                     pass
             f.close()
             if not mounted and automount and not error:
-                #os.system('gnome-mount -d %s -m %s' % (self.dev, self.dev.split('/')[-1]))
-                os.system('gksudo \"mount -o ro %s %s\"' % (self.dev, tempfile.mkdtemp()))
+                os.system('gvfs-mount -m -d %s' % (self.dev))
+                #os.system('gksudo \"mount -o ro %s %s\"' % (self.dev, tempfile.mkdtemp()))
                 #gksu2.sudo('mount -o ro %s %s' % (self.dev, tempfile.mkdtemp()))
                 mounted = self.is_mounted(False)
             return mounted
             
     def umount(self):
-        if self.mountpoint and self.mountpoint.startswith('/tmp'):
+        if self.mountpoint:
             #gksu2.sudo('umount %s' % self.dev)
-            os.system('gksudo \"umount %s\"' % self.dev)
-            try:
-                os.rmdir(self.mountpoint)
-            except:
-                pass
+            os.system('gvfs-mount -u %s' % self.mountpoint)
+            
            
 
     def detect_os(self):
@@ -275,6 +272,7 @@ if __name__ == "__main__":
     print "Windows: ", str(com.get_win_users().keys())
     print "Linux: ", str(com.get_lnx_users().keys())
     print "Mac: ", str(com.get_mac_users().keys())
+    com.umount_all_partitions()
 
 
 

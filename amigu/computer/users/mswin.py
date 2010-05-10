@@ -276,7 +276,12 @@ class winuser(regedit, generic_usr):
         for f in folder_2_copy:
             try:
                 c = self.get_copier(f)
-                self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+                dir = self.tree_options.append( data, [c.name, None, str(c.size), c.description, c] )
+                try:
+                    conv = converter(self, f)
+                    self.tree_options.append( dir, [conv.name, None, str(conv.size), conv.description, conv] )
+                except: 
+                    pass
             except:
                 pass
 

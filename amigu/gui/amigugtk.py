@@ -189,7 +189,7 @@ class Asistente:
         box_statico_inf.pack_start(box_statico_infver1, False, False, 0)
         box_statico_inf.pack_start(box_statico_infver2, True, False, 0)
 
-        box_statico_infver1.pack_start(image1, True, True, 0)
+        box_statico_infver1.pack_start(image1, True, True, 10)
         box_statico_infver1.pack_start(self.etapa, False, False, 1)
         box_statico_infver2.pack_start(self.about_boton, False, False, 0)
         box_statico_infver2.pack_start(self.back_boton, False, False, 0)
@@ -420,7 +420,7 @@ class Asistente:
         """Muestra mensajes de aviso"""
         # crear
         self.advertencia = gtk.Dialog(_("Aviso"), self.window, gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
-                     (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT,))
+                     (gtk.STOCK_OK, gtk.RESPONSE_ACCEPT))
         
         h1 = gtk.HBox(False, 10)
 
@@ -884,7 +884,7 @@ class Asistente:
                 self.resumen.set_cursor(path)
                 gtk.gdk.threads_leave()
                 time.sleep(0.5)
-                if isinstance(self.tarea, copier):
+                if isinstance(self.tarea, copier) or isinstance(self.tarea, converter):
                     self.tarea.set_destination(self.destino)
                 try:
                     self.tarea.run(self.tasks, task)

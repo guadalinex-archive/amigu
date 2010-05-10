@@ -7,7 +7,8 @@
 import os
 import re
 import shutil
-from os.path import isdir, isfile, exists, split, basename, dirname, splitext, join
+import commands
+from os.path import isdir, isfile, exists, split, basename, dirname, splitext, join, getsize
 from amigu.apps.base import application
 from amigu import _
 import subprocess
@@ -47,25 +48,7 @@ def restore_backup(backup):
         except (IOError, os.error), why:
             error("Can't restore backup %s: %s" % (backup, str(why)))
 
-def odf_converter(file, format = 'pdf'):
-    """Convierte el fichero recibido a formato compatible con OpenOffice.org
-    
-    Argumentos de entrada:
-    file -> ruta del fichero
-    format -> tipo de formato de salida (default "pdf")
-    
-    """
-    s = None
-    if not exists("/usr/bin/unoconv"):
-        return s
-    try:
-        #os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
-        s = subprocess.Popen(["unoconv", "-f", format, file])
-        t = Timer(30, s.kill)
-        t.start()
-    except:
-        s.wait()
-    return s
+
         
 def error(e):
     """Error handler"""
@@ -171,8 +154,8 @@ class folder:
         """Devuelve el tamaño de la carpeta"""
         if self.path:
             try:
-                tam = os.popen('du -s ' + self.path.replace(' ','\ ').replace('(','\(').replace(')','\)'))
-                return int(tam.read().split('\t')[0])
+                tam = commands.getoutput('du -s  "%s"' % self.path)
+                return int(tam.split('\t')[0])
             except:
                 self.error('Size for %s not available' % self.path)
                 return 0
@@ -250,27 +233,10 @@ class folder:
                             progress(">>> Copying %s..." % ruta)
                             shutil.copy2(ruta, destino.path)
                             os.chmod(join(destino.path, e), 0644)
-                            s = None
-                            if convert and ext in self.document_files:
-                                s = odf_converter(join(destino.path, e), 'odt')
-                            elif convert and ext in self.presentation_files:
-                                s = odf_converter(join(destino.path, e), 'odp')
-                            elif convert and ext in self.spread_files:
-                                s = odf_converter(join(destino.path, e), 'ods')
-                            if s:
-                                self.subprocesos.append(s)
-                                if len(self.subprocesos) > 3:
-                                    while self.subprocesos:
-                                        s = self.subprocesos.pop(0)
-                                        if s.wait() < 0:
-                                            i += 1
-                                if i >= 10:
-                                    convert = False
                             if function and delta:
                                 #for progress bar update
                                 function(1, 1)
                                 function(delta=delta)
-                            
                         except:
                             self.error('Imposible copiar ' + e)
                 else:
@@ -291,7 +257,7 @@ class folder:
             except:
                 pass
 
-    def search_by_ext(self, extension):
+    def search_by_ext(self, extensions):
         """Devuelve una lista de archivos que cumplen con la extension dada
         
         Argumentos de entrada:
@@ -306,11 +272,11 @@ class folder:
                     # caso recursivo
                     suborigen = folder(ruta)
                     if suborigen:
-                        found += suborigen.search_by_ext(extension)
+                        found += suborigen.search_by_ext(extensions)
                 elif isfile(ruta):
                     # caso base
                     ext = splitext(e)[1]
-                    if (ext == extension ) :
+                    if (ext in extensions ) :
                         #print ruta
                         found.append(ruta)
                 else:
@@ -359,6 +325,105 @@ class folder:
                 self.error ('Permiso denegado para escribir en ' + self.path)
             else: # invalid path
                 self.error ('Ruta no valida: ' + join(self.path, subfolder))
+
+class converter(application):
+    """Clase para el manejo de conversión de archivos"""
+    def initialize(self):
+        """Inicializa los parametros específicos de la aplicación"""
+        if not os.path.exists("/usr/bin/unoconv"):
+            raise Exception
+        self.name = _("Convertir archivos de ofimática")
+        self.filelist = self.option.search_by_ext(self.option.document_files + self.option.presentation_files + self.option.spread_files)
+        self.files = len(self.filelist)
+        if not self.files:
+            raise Exception
+        self.size = self.get_total_size()
+        self.copied = 0
+        self.type = "data"
+        self.destination = None
+        self.timer = None
+        self.path = self.option
+        self.description = _("Conversión de") + " %d " % self.files + _("archivos ofimáticos")
+
+    def get_total_size(self):
+        accum = 0
+        for f in self.filelist:
+            tam = commands.getoutput('du -s "%s"' % f)
+            try:
+                accum += int(tam.split('\t')[0])
+            except: 
+                pass
+        return accum
+
+    def set_destination(self, dest):
+        """Establece el destino de la copia.
+        
+        Argumentos de entrada:
+        dest -> destino de la copia, puede ser una ruta o un objeto de tipo 'folder'
+        
+        """
+        if type(dest) == folder:
+            self.destination = dest.path
+        elif exists(dest) and isdir(dest):
+            self.destination = dest
+
+    def do(self):
+        """Realiza el proceso de importación"""
+        self.option.errors = []
+        inc = 0
+        errors = 0
+        if self.model:
+            inc = 100.0/(self.files + 1)
+        self.abort = False
+        dest = folder(self.destination)
+        self.destination = dest.create_subfolder(_("Convertidos"))
+        for f in self.filelist:
+            if self.abort:
+                break
+            s = None
+            ext = splitext(f)[1]
+            if ext in self.option.document_files:
+                s = self.odf_converter(f, 'odt')
+            elif ext in self.option.presentation_files:
+                s = self.odf_converter(f, 'odp')
+            elif ext in self.option.spread_files:
+                s = self.odf_converter(f, 'ods')
+            if not s:
+                continue
+            if s.wait() < 0:
+                errors += 1
+            else:
+                errors -= 1
+                self.update_progress(1, 1)
+                self.update_progress(delta=inc)
+            self.outpipe.close()
+            self.timer.cancel()
+            if errors >= 10:
+                self.cancel()
+                
+    def odf_converter(self, file, format = 'pdf'):
+        """Convierte el fichero recibido a formato compatible con OpenOffice.org
+        
+        Argumentos de entrada:
+        file -> ruta del fichero
+        format -> tipo de formato de salida (default "pdf")
+        
+        """
+        s = None
+        if not exists(file):
+            return s
+        output = file.replace(self.user.path, self.destination)
+        ext = splitext(file)[1]
+        folder(dirname(output))
+        self.outpipe = open(output.replace(ext, "."+format) , "w")
+        try:
+            #os.system("unoconv -f %s %s" % (format, file.replace(' ', '\ ')))
+            s = subprocess.Popen(["unoconv", "--stdout" , "-f", format, file], stdout=self.outpipe)
+            self.timer = Timer(30, s.kill)
+            self.timer.start()
+        except:
+            s.wait()
+        return s
 
 
 
@@ -420,7 +485,7 @@ if __name__ == "__main__":
     print 'freespace: %dKB' % f.get_free_space()
     for s in f.get_subfolders():
         print s.get_name()
-    print f.search_by_ext('.txt')
-    f.copy('/tmp')
+    print f.search_by_ext([".odt"])
+    #f.copy('/tmp')
     print f.errors
 
