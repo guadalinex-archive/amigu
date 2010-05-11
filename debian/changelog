@@ -1,7 +1,17 @@
+amigu (0.7.6) lucid; urgency=low
+
+  * Fixed bugs
+  * Added dependencies:
+    - gvfs
+  * Better compatibility with Windows 7
+  * More control of tasks
+
+ -- Fernando <fruiz@forja.guadalinex.org>  Tue, 11 May 2010 14:30:57 +0200
+
 amigu (0.7.5-1) lucid; urgency=low
 
   * Fixed Bugs
-  * Removed dependencie:
+  * Removed dependencies:
     - gnome-mount (DEPRECATED)
   * Added dependencies:
     - os-prober

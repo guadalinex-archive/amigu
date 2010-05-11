@@ -18,6 +18,7 @@ class windowslive(application):
 
     def initialize(self):
         """Personaliza los parámetro de la aplicación"""
+        self.name = "Windows Live Messenger"
         if not self.option:
             raise Exception
         self.name = self.option

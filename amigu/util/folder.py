@@ -400,6 +400,10 @@ class converter(application):
             self.timer.cancel()
             if errors >= 10:
                 self.cancel()
+                return 0
+            elif errors < 0:
+                errors = 0
+        return 1
                 
     def odf_converter(self, file, format = 'pdf'):
         """Convierte el fichero recibido a formato compatible con OpenOffice.org

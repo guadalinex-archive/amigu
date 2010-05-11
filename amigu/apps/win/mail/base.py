@@ -241,7 +241,9 @@ class mailreader(application):
         if not self.abort:
             self.import_accounts()
         if not self.abort:
+            self.pulse_start()
             self.import_mails()
+            self.pulse_stop()
             self.update_progress(80.0)
         if not self.abort:
             self.import_contacts()

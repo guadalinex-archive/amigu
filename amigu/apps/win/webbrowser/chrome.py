@@ -50,13 +50,13 @@ class chrome(webbrowser):
             if "type" in marks.keys():
                 if marks["type"] == "folder":
                     #caso recursivo
-                    folder = tree.append(iter, [marks["name"].decode('iso-8859-1').encode('utf-8'),None])
+                    folder = tree.append(iter, [eval("u'%s'" % marks["name"]),None])
                     #print marks["name"].decode('iso-8859-1').encode('utf-8')
                     self.get_bookmarks(tree, folder, marks["children"])
                 elif marks["type"] == "url":
                     # caso base
                     #print '\t', marks["name"].decode('iso-8859-1').encode('utf-8'), marks["url"].decode('iso-8859-1').encode('utf-8')
-                    mark = tree.append(iter, [marks["name"].decode('iso-8859-1').encode('utf-8'), marks["url"].decode('iso-8859-1').encode('utf-8')])
+                    mark = tree.append(iter, [eval("u'%s'" % marks["name"]), marks["url"].decode('iso-8859-1').encode('utf-8')])
             else:
                 for e in marks.values():
                     self.get_bookmarks(tree, iter, e)

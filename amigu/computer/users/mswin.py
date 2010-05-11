@@ -316,6 +316,10 @@ class winuser(regedit, generic_usr):
 
         # Correo
         lectores = []
+        try:
+            lectores.append(thunderbird.thunderbird(self, self.get_THUNDERBIRD_accounts()))
+        except:
+            pass
         out = self.get_OUTLOOK_accounts()
         for k, v in out.iteritems():
             try:
@@ -335,10 +339,6 @@ class winuser(regedit, generic_usr):
             pass
         try:
             lectores.append(livemail.windowslivemail(self, self.get_WINDOWS_LIVE_MAIL_accounts().values()))
-        except:
-            pass
-        try:
-            lectores.append(thunderbid.thunderbird(self, self.get_THUNDERBIRD_accounts()))
         except:
             pass
         if lectores:

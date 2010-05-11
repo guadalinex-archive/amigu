@@ -39,7 +39,9 @@ setup(  name             = "amigu",
                     ('/usr/share/locale/en/LC_MESSAGES', ['translations/en/LC_MESSAGES/amigu.mo'])
                     ],
      )
-
-os.chmod('/usr/bin/amigu', 0755)
-os.chmod('/usr/share/applications/amigu.desktop', 0644)
+try:
+    os.chmod('/usr/bin/amigu', 0755)
+    os.chmod('/usr/share/applications/amigu.desktop', 0644)
+except:
+    pass
 

@@ -6,6 +6,7 @@ from glob import glob
 import sqlite3
 from amigu import _
 from amigu.apps.win.webbrowser.base import *
+from amigu.util.folder import folder
 
 class firefox(webbrowser):
 
@@ -63,6 +64,14 @@ class firefox(webbrowser):
 
     def migrate2firefox(self):
         """Importa la configuración en Firefox"""
-        ff = firefox3()
-        ff.add_bookmarks(self.tree_links)
-
+        if not os.path.exists(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox')):
+            self.direct_import()
+        else:
+            ff = firefox3()
+            ff.add_bookmarks(self.tree_links)
+            
+    def direct_import(self):
+        """Importa directamente la configuración en Firefox"""
+        dest = folder(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox'))
+        origen = folder(os.path.join(self.user.folders["AppData"].path, 'Mozilla', 'Firefox'))
+        origen.copy(dest)

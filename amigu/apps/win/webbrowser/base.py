@@ -52,7 +52,12 @@ class firefox3:
     def __init__(self):
         """Constructor de la clase"""
         try:
-            self.bookmarks_file = glob(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox', '*.default', 'places.sqlite'))[0]
+            prof = open(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox', 'profiles.ini'), 'rb')
+            for l in prof.readlines():
+                if l.startswith('Path'):
+                    perfil = l.split('=')[1].replace('\n','').replace('\r','')
+            prof.close()
+            self.bookmarks_file = glob(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox', perfil, 'places.sqlite'))[0]
         except:
             # create profile and bookmarks file
             ff_dir = folder(os.path.join(os.path.expanduser('~'), '.mozilla', 'firefox','m1gra73d.default'))
@@ -340,5 +345,5 @@ if __name__ == "__main__":
     print "Analizando usuarios de Windows"
     for user_path, ops in com.get_win_users().iteritems():
         u = winuser(user_path, com, ops)
-        n = iexplorer(u)
+        firefox3()
         u.clean()

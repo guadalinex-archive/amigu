@@ -175,6 +175,7 @@ class Asistente:
         self.apply_boton = gtk.Button(stock = gtk.STOCK_APPLY)
         self.exit_boton = gtk.Button(stock = gtk.STOCK_QUIT)
         self.about_boton = gtk.Button(label=_("Acerca de"))
+        self.jump_boton = gtk.Button(label=_("Omitir"))
 
 
         # añadir
@@ -197,6 +198,7 @@ class Asistente:
         box_statico_infver2.pack_start(self.apply_boton, False, False, 0)
         box_statico_infver2.pack_start(espacio, True, True, 2)
         box_statico_infver2.pack_start(self.exit_boton, False, False, 0)
+        box_statico_infver2.pack_start(self.jump_boton, False, False, 0)
         box_statico_infver2.pack_start(self.stop_boton, True, False, 5)
         box_principal.pack_start(image, False, False, 0)
         box_principal.pack_start(separador1, False, True, 10)
@@ -216,11 +218,13 @@ class Asistente:
         self.exit_boton.connect("clicked", self.destroy)
         self.stop_boton.connect_object("clicked", self.dialogo_cancelacion, self.window)
         self.about_boton.connect_object("clicked", self.about, self.window)
+        self.jump_boton.connect_object("clicked", self.omitir, self.window)
 
         # mostrar ventana
         self.window.show_all()
         self.apply_boton.hide()
         self.exit_boton.hide()
+        self.jump_boton.hide()
 
 
 ################Primera Ventana
@@ -531,6 +535,13 @@ class Asistente:
         #url_show(url)
         pass
 
+    def omitir(self, widget, data=None):
+        """Aborta la tarea actual pero no el proceso de migración"""
+        if self.working:
+            self.jump_boton.set_sensitive(False)
+            self.tarea.cancel()
+            return 0
+
     def destroy(self, widget, data=None):
         """Finaliza la ejecución del asistente y limpiar los archivos temporales"""
         if self.working:
@@ -606,6 +617,7 @@ class Asistente:
         self.forward_boton.show()
         self.forward_boton.set_sensitive(False)
         self.apply_boton.hide()
+        self.jump_boton.hide()
         self.about_boton.hide()
         self.etapa.set_markup("<span face=\"arial\" size=\"8000\" foreground=\"chocolate\"><b>"+_('Paso %d de 5')%self.paso+"</b></span>")
 
@@ -863,11 +875,13 @@ class Asistente:
         self.working = True
         self.abort = False
         self.pause = False
+        self.jump_boton.show_all()
         self.progreso.set_fraction(0)
         while task and not self.abort:
             self.tarea = self.tasks.get_value(task, 5)
             if self.tarea:
                 gtk.gdk.threads_enter()
+                self.jump_boton.set_sensitive(True)
                 self.tasks.set_value(task, 1, gtk.STOCK_EXECUTE)
                 por = self.progreso.get_fraction() + (1.0/(self.n_tasks+1))
                 if por > 1:
@@ -917,6 +931,7 @@ class Asistente:
             self.progreso.set_text(_("Cancelado"))
             self.stop_boton.show_all()
             self.back_boton.show_all()
+            self.jump_boton.hide()
             gtk.gdk.threads_leave()
         else:
             gtk.gdk.threads_enter()
@@ -925,6 +940,7 @@ class Asistente:
             self.stop_boton.hide()
             self.exit_boton.show_all()
             self.about_boton.show()
+            self.jump_boton.hide()
             #self.dialogo_advertencia(_("Algunos cambios tendrán efecto cuando reinicie su equipo"))
             gtk.gdk.threads_leave()
             

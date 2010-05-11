@@ -12,6 +12,7 @@ class gtalk(application):
 
     def initialize(self):
         """Personaliza los parámetros de la aplicación"""
+        self.name = "Gtalk"
         self.option = self.user.get_GTALK_account()
         if not self.option:
             raise Exception

@@ -24,7 +24,13 @@ class thunderbird(mailreader):
 
     def get_configuration(self):
         """Devuelve la configuración asociada a la aplicación"""
-        prefs = self.user.get_THUNDERBIRD_prefs()
+        prof = open(os.path.join(self.user.folders["AppData"].path, 'Thunderbird', 'profiles.ini'), 'rb')
+        for l in prof.readlines():
+            if l.startswith('Path'):
+                perfil = l.split('=')[1].replace('\n','').replace('\r','')
+        prof.close()
+        prefs = os.path.join(self.user.folders["AppData"].path, 'Thunderbird', perfil, 'prefs.js')
+        #prefs = self.user.get_THUNDERBIRD_prefs()
         p = open(prefs, 'r')
         content = p.readlines()
         p.close()
@@ -32,8 +38,8 @@ class thunderbird(mailreader):
         c = {}
         configs = []
         for ac in self.option:
-            pid = re.compile('.*'+self.option+'\.identities\".+\"(?P<id>\w+)\".+')
-            pserver = re.compile('.*'+self.option+'\.server\".+\"(?P<server>\w+)\".+')
+            pid = re.compile('.*'+ac+'\.identities\".+\"(?P<id>\w+)\".+')
+            pserver = re.compile('.*'+ac+'\.server\".+\"(?P<server>\w+)\".+')
             
             for l in content:
                 m = pid.match(l)
@@ -47,7 +53,10 @@ class thunderbird(mailreader):
                     elif id:
                         m = psmtp.match(l)
                         if m:
-                            smtp = m.group('smtp')
+                            try:
+                                smtp = m.group('smtp')
+                            except:
+                                pass
             pid = re.compile('.*mail\.identity\.'+id+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\d+)\).+')
             pserver = re.compile('.*mail\.server\.'+server+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
             psmtp = re.compile('.*mail\.smtpserver\.'+smtp+'\.(?P<key>.+)\".+\s(?P<value>(\".+\")|\w+)\).+')
@@ -102,5 +111,21 @@ class thunderbird(mailreader):
         self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
         self.mb_dir.copy(self.dest.path, exclude=['.dat','.msf'])
         
+
+    def do(self):
+        if not os.path.exists(os.path.join(os.path.expanduser('~'),'.mozilla-thunderbird')):
+            self.pulse_start()
+            self.direct_import()
+            self.pulse_stop()
+            return 1
+        else:
+            mailreader.do(self)
+
+            
+    def direct_import(self):
+        """Importa directamente la configuración en Thunderbird"""
+        dest = folder(os.path.join(os.path.expanduser('~'), '.mozilla-thunderbird'))
+        origen = folder(os.path.join(self.user.folders["AppData"].path, 'Thunderbird'))
+        origen.copy(dest)
 
 ########################################################################
