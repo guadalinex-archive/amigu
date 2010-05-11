@@ -275,8 +275,14 @@ class mailreader(application):
         
         """
         for a in self.mailconfigs:
-            self.config_EVOLUTION(a)
-            self.config_THUNDERBIRD(a)
+            try:
+                self.config_EVOLUTION(a)
+            except: 
+                print a
+            try:
+                self.config_THUNDERBIRD(a)
+            except:
+                print a
             self.update_progress(delta=45.0/len(self.mailboxes))
         
     def import_calendar(self):

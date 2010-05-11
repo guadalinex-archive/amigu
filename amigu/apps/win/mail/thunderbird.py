@@ -109,17 +109,33 @@ class thunderbird(mailreader):
     def import_mails(self):
         """Convierte los correos al formato Mailbox."""
         self.dest = folder(os.path.join(os.path.expanduser('~'),'.evolution','mail','local', _("Correo de ")+ self.name +'.sbd'))
-        self.mb_dir.copy(self.dest.path, exclude=['.dat','.msf'])
+        for mb in self.mailboxes:
+            mb.copy(self.dest, exclude=['.dat','.msf'])
         
 
     def do(self):
+        """Ejecuta el proceso de migración basado en importar las cuentas
+        de correo, los correos almacenados.
+        
+        Devuelve 1 en caso que el proceso finalice sin errores.
+        
+        """
+        self.update_progress(10.0)
         if not os.path.exists(os.path.join(os.path.expanduser('~'),'.mozilla-thunderbird')):
             self.pulse_start()
             self.direct_import()
             self.pulse_stop()
-            return 1
-        else:
-            mailreader.do(self)
+        #mailreader.do(self)
+        self.update_progress(50.0)
+        if not self.abort:
+            self.import_accounts()
+            self.update_progress(70.0)
+        if not self.abort:
+            self.pulse_start()
+            self.import_mails()
+            self.pulse_stop()
+            self.update_progress(90.0)
+        return 1
 
             
     def direct_import(self):
