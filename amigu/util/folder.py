@@ -227,6 +227,8 @@ class folder:
                         suborigen.copy(subdestino, extension, convert, exclude, function, delta)
                 elif isfile(ruta):
                     # caso base
+                    if e == "desktop.ini":
+                        continue
                     ext = splitext(e)[-1]
                     if (not exclude or (not ext in exclude)) and (not extension or (ext in extension)) and not abort_copy: # think about some file to exclude, like .ini o .lnk
                         try:

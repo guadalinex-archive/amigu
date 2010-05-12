@@ -13,6 +13,7 @@ import threading
 import traceback
 import syslog
 import shutil
+import cairo
 from amigu import __version__ as ver
 from amigu import _
 from amigu.apps.win import mail, webbrowser, messenger, settings
@@ -293,21 +294,8 @@ class Asistente:
         self.cuenta.set_use_markup(True)
         
 
-        self.datos_libre = gtk.Label()
-        self.datos_libre.set_use_markup(True)
-        self.datos_libre.set_alignment(1,0)
-
-        self.conf_libre = gtk.Label()
-        self.conf_libre.set_use_markup(True)
-        self.conf_libre.set_alignment(1,0)
-
-        self.datos_req = gtk.Label()
-        self.datos_req.set_use_markup(True)
-        self.datos_req.set_alignment(1,0)
-
-        self.conf_req = gtk.Label()
-        self.conf_req.set_use_markup(True)
-        self.conf_req.set_alignment(1,0)
+        self.datos = SpaceIndicator(self.window)
+        self.configuraciones = SpaceIndicator(self.window)
 
         self.entry.connect("activate", self.actualizar_espacio)
         self.entry.set_text(f.get_path())
@@ -336,23 +324,15 @@ class Asistente:
         frame5.add(self.sw3)
         self.frame4.add(self.box_opcionesver2)
         frame2.add(self.box_opcioneshor1)
-        self.box_opcioneshor3.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
-        self.box_opcioneshor3.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor4.pack_start(self.datos_req, False, True, 0)
-        self.box_opcioneshor4.pack_start(self.datos_libre, True, True, 0)
-        self.box_opcioneshor1.pack_start(self.box_opcionesver3, True, True, 0)
-        self.box_opcionesver3.pack_start(self.box_opcioneshor3, True, False, 0)
-        self.box_opcionesver3.pack_start(self.box_opcioneshor4, True, True, 0)
+
+        self.box_opcioneshor1.pack_start(gtk.Label(_('Datos de usuario')), True, True, 0)
+        self.box_opcioneshor1.pack_start(self.datos, True, True, 0)
+
         self.box_opcioneshor1.pack_start(self.entry, True, False, 0)
         self.box_opcioneshor1.pack_start(boton22, True, False, 0)
         self.box_opcioneshor1.pack_start(gtk.HSeparator(), True, False, 0)
-        self.box_opcioneshor1.pack_start(self.box_opcionesver4, True, True, 0)
-        self.box_opcionesver4.pack_start(self.box_opcioneshor5, True, False, 0)
-        self.box_opcionesver4.pack_start(self.box_opcioneshor6, True, True, 0)
-        self.box_opcioneshor5.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
-        self.box_opcioneshor5.pack_start(gtk.Label(_('Espacio disponible')), True, True, 0)
-        self.box_opcioneshor6.pack_start(self.conf_req, False, True, 0)
-        self.box_opcioneshor6.pack_start(self.conf_libre, True, False, 0)
+        self.box_opcioneshor1.pack_start(gtk.Label(_('Configuraciones')), True, True, 0)
+        self.box_opcioneshor1.pack_start(self.configuraciones, True, True, 0)
         self.box_opcioneshor2.pack_start(self.frame4, True, False, 0)
         self.box_opcioneshor2.pack_start(frame2, True, False, 0)
 
@@ -587,10 +567,14 @@ class Asistente:
         if os.path.exists(destino):
             d = folder(destino)
             self.available["data"] = d.get_free_space()
-        self.datos_libre.set_markup("<i>%dKiB</i>" % self.available["data"])
-        self.conf_libre.set_markup("<i>%dKiB</i>" % self.available["conf"])
-        self.datos_req.set_markup("<i>%dKiB</i>" % self.required["data"])
-        self.conf_req.set_markup("<i>%dKiB</i>" % self.required["conf"])
+        #self.datos_libre.set_markup("<i>%dKiB</i>" % self.available["data"])
+        #self.conf_libre.set_markup("<i>%dKiB</i>" % self.available["conf"])
+        #self.datos_req.set_markup("<i>%dKiB</i>" % self.required["data"])
+        #self.conf_req.set_markup("<i>%dKiB</i>" % self.required["conf"])
+        self.datos.update_values(self.required["data"], self.available["data"])
+        self.configuraciones.update_values(self.required["conf"], self.available["conf"])
+        self.datos.queue_draw()
+        self.configuraciones.queue_draw()
 
 
     def marcar_opcion( self, cell, path):
@@ -945,6 +929,102 @@ class Asistente:
             gtk.gdk.threads_leave()
             
 
+class SpaceIndicator(gtk.DrawingArea):
+
+    def __init__(self, parent):
+        self.par = parent
+        super(SpaceIndicator, self).__init__()
+        self.set_size_request(-1, 30)
+        self.connect("expose-event", self.expose)
+        self.ticks = 4
+        self.offset = 25
+    
+
+    def expose(self, widget, event):
+        
+        cr = self.window.cairo_create()
+        
+        cr.set_line_width(0.8)
+
+        cr.select_font_face("Courier", 
+            cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
+        cr.set_font_size(11)
+
+        width = self.allocation.width - (2 * self.offset)
+     
+        #self.cur_width = self.par.get_cur_value()
+        #self.max_width = self.par.get_max_value()
+        
+        step = round(width / float(self.ticks))
+
+        till = (width / self.max_width) * self.cur_width
+        full = (width / (self.cur_width+1)) * self.max_width
+        
+        if (self.cur_width >= self.max_width):
+            
+            needed = self.cur_width
+            linear = cairo.LinearGradient(self.offset, 0.0, full+self.offset, 30.0)          #gradient
+            linear.add_color_stop_rgb(0.0,  0, 1, 0)                  #gradient
+            linear.add_color_stop_rgb(0.8,  0, 1, 0)                  #gradient
+            linear.add_color_stop_rgb(0.9,  1, 1, 0)                #gradient
+            linear.add_color_stop_rgb(1.0,  1, 0, 0)   
+
+            cr.set_source(linear)
+            cr.rectangle(self.offset, 0, full, 10)
+            cr.fill ()
+
+            cr.set_source_rgb(1.0, 0.0, 0.0)
+            cr.rectangle(full+self.offset, 0, till-full-self.offset, 10)
+            cr.fill ()
+
+        else: 
+        
+            needed = self.max_width
+            cr.set_source_rgb(0.7, 0.7, 0.7)
+            cr.rectangle(self.offset, 0, width, 10)
+            cr.fill ()
+            
+            linear = cairo.LinearGradient(self.offset, 0.0, width+self.offset, 30.0)          #gradient
+            linear.add_color_stop_rgb(0.0,  0, 1, 0)                  #gradient
+            linear.add_color_stop_rgb(0.8,  0, 1, 0)                #gradient
+            linear.add_color_stop_rgb(0.9,  1, 1, 0)                #gradient
+            linear.add_color_stop_rgb(1.0,  1, 0, 0)   
+            
+            cr.set_source(linear)            
+            cr.rectangle(self.offset, 0, till, 10)
+            cr.fill ()
+       
+        
+        cr.set_source_rgb(0.35, 0.31, 0.24)
+        self.num = range(0, int(needed*(1+1.0/self.ticks)), int(needed/self.ticks))
+        for i in range(0, len(self.num)):
+            cr.move_to(self.offset+i*step, 0)
+            cr.line_to(self.offset+i*step, 10)
+            cr.stroke()
+            
+            label = adjust_units(self.num[i])
+            (x, y, width, height, dx, dy) = cr.text_extents(label)
+            cr.move_to(self.offset+i*step-width/2, 20)
+            cr.text_path(label)
+            cr.stroke()
+            
+    def update_values(self, cur, max):
+        self.cur_width = float(cur)
+        self.max_width = float(max)
+        self.queue_draw()
+        
+
+def adjust_units(size):
+    if size is None:
+        return None
+    size = float(size)
+    if size > 1024*1024:
+        size = '%.1fG' % (round(size/(1024*1024), 1))
+    elif size > 1024:
+        size = '%dM' % (round(size/1024))
+    elif size or size == 0:
+        size = '%dK' % round(size)
+    return size
 
 def run():
     print _("Asistente de MIgración de Guadalinex")

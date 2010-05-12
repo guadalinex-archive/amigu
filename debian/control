@@ -9,7 +9,7 @@ XS-Python-Version: all
 
 Package: amigu
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, python (>=2.6), python-gtk2, os-prober, gksu, readpst, gvfs, python-imaging
+Depends: ${shlibs:Depends}, ${misc:Depends}, python (>=2.6), python-gtk2, os-prober, gksu, readpst, gvfs, python-imaging, python-cairo
 Recommends: unoconv
 XS-Python-Version: ${python:Versions}
 Description: AMIGU es un asistente que le ayudara a importar sus archivos y configuraciones de Windows

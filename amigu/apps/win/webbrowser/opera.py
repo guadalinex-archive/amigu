@@ -14,7 +14,7 @@ class opera(webbrowser):
 
     def get_configuration(self):
         """Devuelve la configuración de la apliación"""
-        file = os.path.join(self.user.folders['AppData'].path, 'Opera', 'Opera', 'profile', 'opera6.adr')
+        file = os.path.join(self.user.folders['AppData'].path, 'Opera', 'Opera', 'bookmarks.adr')
         links = []
         marks = open(file,'r')
         hotlist = marks.read().split('\r\n\r\n')
