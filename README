@@ -34,7 +34,9 @@ Dependencias
     programas:
         - python
         - python-gtk2
-        - gnome-mount
+        - python-imaging
+        - python-cairo
+        - gvfs-mount
         - readpst
         - readbx
         - unoconv

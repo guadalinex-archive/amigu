@@ -946,7 +946,7 @@ class SpaceIndicator(gtk.DrawingArea):
         
         cr.set_line_width(0.8)
 
-        cr.select_font_face("Courier", 
+        cr.select_font_face("Sans", 
             cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_NORMAL)
         cr.set_font_size(11)
 
@@ -965,7 +965,7 @@ class SpaceIndicator(gtk.DrawingArea):
             needed = self.cur_width
             linear = cairo.LinearGradient(self.offset, 0.0, full+self.offset, 30.0)          #gradient
             linear.add_color_stop_rgb(0.0,  0, 1, 0)                  #gradient
-            linear.add_color_stop_rgb(0.8,  0, 1, 0)                  #gradient
+            linear.add_color_stop_rgb(0.75,  0, 1, 0)                  #gradient
             linear.add_color_stop_rgb(0.9,  1, 1, 0)                #gradient
             linear.add_color_stop_rgb(1.0,  1, 0, 0)   
 
@@ -986,7 +986,7 @@ class SpaceIndicator(gtk.DrawingArea):
             
             linear = cairo.LinearGradient(self.offset, 0.0, width+self.offset, 30.0)          #gradient
             linear.add_color_stop_rgb(0.0,  0, 1, 0)                  #gradient
-            linear.add_color_stop_rgb(0.8,  0, 1, 0)                #gradient
+            linear.add_color_stop_rgb(0.75,  0, 1, 0)                #gradient
             linear.add_color_stop_rgb(0.9,  1, 1, 0)                #gradient
             linear.add_color_stop_rgb(1.0,  1, 0, 0)   
             
@@ -1001,6 +1001,11 @@ class SpaceIndicator(gtk.DrawingArea):
             cr.move_to(self.offset+i*step, 0)
             cr.line_to(self.offset+i*step, 10)
             cr.stroke()
+            
+            if i > 0:
+                cr.move_to(self.offset+i*step-step/2, 0)
+                cr.line_to(self.offset+i*step-step/2, 5)
+                cr.stroke()
             
             label = adjust_units(self.num[i])
             (x, y, width, height, dx, dy) = cr.text_extents(label)

@@ -1,5 +1,4 @@
 #!/usr/bin/make -f
-
 DEB_PYTHON_SYSTEM=pycentral
 DBK2MAN_XLS=/usr/share/xml/docbook/stylesheet/nwalsh/manpages/docbook.xml
 
